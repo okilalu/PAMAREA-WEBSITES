@@ -1,5 +1,12 @@
-import { ArrowDown2, Personalcard, SearchNormal, UserAdd } from "iconsax-react";
-import React from "react";
+import {
+  ArrowDown2,
+  CloseCircle,
+  People,
+  SearchNormal,
+  SearchStatus,
+  UserAdd,
+} from "iconsax-react";
+import React, { useMemo, useState } from "react";
 
 const UserManage = () => {
   const userTable = [
@@ -8,60 +15,90 @@ const UserManage = () => {
       Nip: "520210210210120",
       section: "SEC-001",
       unit: "Zona 1",
+      role: "Admin",
+      device: "Samsung",
+      status: "Aktif",
+    },
+    {
+      nama: "Andi",
+      Nip: "520210210210121",
+      section: "SEC-002",
+      unit: "Zona 2",
       role: "Security",
       device: "Samsung",
       status: "Aktif",
     },
     {
-      nama: "Dimas",
-      Nip: "520210210210120",
-      section: "SEC-001",
-      unit: "Zona 1",
+      nama: "Rizky",
+      Nip: "520210210210122",
+      section: "SEC-003",
+      unit: "Zona 3",
+      role: "Security",
+      device: "Xiaomi",
+      status: "Aktif",
+    },
+    {
+      nama: "Fajar",
+      Nip: "520210210210123",
+      section: "SEC-004",
+      unit: "Zona 4",
+      role: "Security",
+      device: "Oppo",
+      status: "Nonaktif",
+    },
+    {
+      nama: "Bayu",
+      Nip: "520210210210124",
+      section: "SEC-005",
+      unit: "Zona 5",
       role: "Security",
       device: "Samsung",
       status: "Aktif",
     },
     {
-      nama: "Dimas",
-      Nip: "520210210210120",
-      section: "SEC-001",
-      unit: "Zona 1",
+      nama: "Ardi",
+      Nip: "520210210210125",
+      section: "SEC-006",
+      unit: "Zona 6",
+      role: "Security",
+      device: "Vivo",
+      status: "Aktif",
+    },
+    {
+      nama: "Rian",
+      Nip: "520210210210126",
+      section: "SEC-007",
+      unit: "Zona 7",
       role: "Security",
       device: "Samsung",
       status: "Aktif",
     },
     {
-      nama: "Dimas",
-      Nip: "520210210210120",
-      section: "SEC-001",
-      unit: "Zona 1",
+      nama: "Ilham",
+      Nip: "520210210210127",
+      section: "SEC-008",
+      unit: "Zona 8",
       role: "Security",
-      device: "Samsung",
+      device: "Xiaomi",
       status: "Aktif",
     },
     {
-      nama: "Dimas",
-      Nip: "520210210210120",
-      section: "SEC-001",
-      unit: "Zona 1",
+      nama: "Agus",
+      Nip: "520210210210128",
+      section: "SEC-009",
+      unit: "Zona 9",
+      role: "Security",
+      device: "Oppo",
+      status: "Aktif",
+    },
+    {
+      nama: "Rendi",
+      Nip: "520210210210129",
+      section: "SEC-010",
+      unit: "Zona 10",
       role: "Security",
       device: "Samsung",
       status: "Aktif",
-    },
-  ];
-
-  const filterRole = [
-    {
-      name: "Semua Role",
-      value: "5",
-    },
-    {
-      name: "Admin SOC",
-      value: "5",
-    },
-    {
-      name: "Security / Satpam",
-      value: "5",
     },
   ];
 
@@ -85,6 +122,80 @@ const UserManage = () => {
   //     status: "Non-Aktif",
   //   },
   // ];
+  const [users, setUsers] = useState(userTable);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [selectedRole, setSelectedRole] = useState("");
+
+  const filteredUser = useMemo(() => {
+    const keyword = search.toLowerCase().trim();
+
+    return users.filter((item) => {
+      const matchesSearch =
+        item.nama.toLowerCase().includes(keyword) ||
+        item.Nip.toLowerCase().includes(keyword) ||
+        item.section.toLowerCase().includes(keyword) ||
+        item.unit.toLowerCase().includes(keyword) ||
+        item.device.toLowerCase().includes(keyword);
+
+      const matchesRole = selectedRole === "" || item.role === selectedRole;
+
+      return matchesSearch && matchesRole;
+    });
+  }, [users, search, selectedRole]);
+
+  const itemPerPage = 6;
+
+  const totalPages = Math.ceil(filteredUser.length / itemPerPage);
+  const startIndex = (currentPage - 1) * itemPerPage;
+
+  const currentUsers = filteredUser.slice(startIndex, startIndex + itemPerPage);
+
+  const filterRole = [
+    {
+      name: "Semua Role",
+      value: users.length,
+      role: "",
+    },
+    {
+      name: "Admin PAMAREA",
+      value: users.map((item) => item.role === "Admin").length,
+      role: "Admin",
+    },
+    {
+      name: "Security / Satpam",
+      value: users.map((item) => item.role === "Security").length,
+      role: "Security",
+    },
+  ];
+
+  const handleStatusChange = (Nip: string) => {
+    setUsers((prevUsers) =>
+      prevUsers.map((user) =>
+        user.Nip === Nip
+          ? {
+              ...user,
+              status: user.status === "Aktif" ? "Nonaktif" : "Aktif",
+            }
+          : user,
+      ),
+    );
+  };
+
+  const openRegisterModal = () => {
+    const modal = document.getElementById(
+      "register_satpam_modal",
+    ) as HTMLDialogElement;
+    modal.showModal();
+  };
+
+  const closeRegisterModal = () => {
+    const modal = document.getElementById(
+      "register_satpam_modal",
+    ) as HTMLDialogElement;
+    modal.close();
+  };
+
   return (
     <div className="min-h-screen">
       <div className="px-6 flex justify-between breadcrumbs text-sm bg-white border-b border-gray-200 h-14">
@@ -126,14 +237,21 @@ const UserManage = () => {
             <div className="bg-white shadow-sm w-[70%] rounded-lg p-3">
               <div className="flex items-center gap-2">
                 <div className="bg-cyan-100 p-1 rounded-lg">
-                  <Personalcard size={17} color="blue" />
+                  <People size={17} color="blue" />
                 </div>
                 <div className="ml-2">
-                  <p className="text-gray-600 text-sm">Total Personal: 28</p>
+                  <p className="text-gray-600 text-sm">
+                    Total Personel: {users.length}
+                  </p>
                 </div>
               </div>
             </div>
-            <div className="bg-[#FED400] shadow-sm w-[70%] rounded-lg p-3">
+
+            <button
+              type="button"
+              onClick={openRegisterModal}
+              className="bg-[#FED400] shadow-sm w-[70%] rounded-lg p-3 cursor-pointer"
+            >
               <div className="flex items-center gap-1">
                 <div className="bg-[#FED400] p-1 rounded-lg">
                   <UserAdd size={17} color="#6F5C00" />
@@ -144,29 +262,202 @@ const UserManage = () => {
                   </p>
                 </div>
               </div>
-            </div>
+            </button>
+
+            {/* Form & Modal */}
+            <dialog id="register_satpam_modal" className="modal">
+              <div
+                className="
+            modal-box
+            max-w-none
+            w-[450px]
+            h-screen
+            max-h-screen
+            rounded-none
+            absolute
+            right-0
+            top-0
+            m-0
+            p-0
+          "
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">
+                      Register New Satpam
+                    </h3>
+
+                    <p className="text-xs text-gray-500 mt-1">
+                      Add a new security personnel to the system
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={closeRegisterModal}
+                    className="btn btn-sm btn-circle btn-ghost"
+                  >
+                    <CloseCircle size={22} color="gray" />
+                  </button>
+                </div>
+
+                {/* Form */}
+                <form className="p-6 overflow-y-auto h-[calc(100vh-90px)]">
+                  <div className="space-y-4">
+                    {/* Satpam ID */}
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">
+                        Satpam ID
+                      </label>
+
+                      <input
+                        type="text"
+                        placeholder="Enter satpam ID"
+                        className="input input-bordered w-full mt-1 bg-gray-50"
+                      />
+                    </div>
+
+                    {/* Full Name */}
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">
+                        Full Name
+                      </label>
+
+                      <input
+                        type="text"
+                        placeholder="Enter full name"
+                        className="input input-bordered w-full mt-1 bg-gray-50"
+                      />
+                    </div>
+
+                    {/* Station */}
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">
+                        Station
+                      </label>
+
+                      <select className="select select-bordered w-full mt-1 bg-gray-50">
+                        <option disabled selected>
+                          Select station
+                        </option>
+                        <option>Station A</option>
+                        <option>Station B</option>
+                        <option>Station C</option>
+                      </select>
+                    </div>
+
+                    {/* Phone */}
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">
+                        Phone Number
+                      </label>
+
+                      <input
+                        type="tel"
+                        placeholder="Enter phone number"
+                        className="input input-bordered w-full mt-1 bg-gray-50"
+                      />
+                    </div>
+
+                    {/* Email */}
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">
+                        Email
+                      </label>
+
+                      <input
+                        type="email"
+                        placeholder="Enter email address"
+                        className="input input-bordered w-full mt-1 bg-gray-50"
+                      />
+                    </div>
+
+                    {/* Password */}
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">
+                        Password
+                      </label>
+
+                      <input
+                        type="password"
+                        placeholder="Enter password"
+                        className="input input-bordered w-full mt-1 bg-gray-50"
+                      />
+                    </div>
+
+                    {/* Role */}
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">
+                        Role
+                      </label>
+
+                      <select className="select select-bordered w-full mt-1 bg-gray-50">
+                        <option disabled selected>
+                          Select role
+                        </option>
+                        <option>Satpam</option>
+                        <option>Supervisor</option>
+                        <option>Admin</option>
+                      </select>
+                    </div>
+
+                    {/* Action */}
+                    <div className="pt-4 flex gap-3">
+                      <button
+                        type="button"
+                        onClick={closeRegisterModal}
+                        className="btn flex-1 bg-gray-100 border-none text-gray-700"
+                      >
+                        Cancel
+                      </button>
+
+                      <button
+                        type="submit"
+                        className="btn flex-1 bg-[#FED400] border-none text-gray-900 hover:bg-[#e8c200]"
+                      >
+                        Register Satpam
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              {/* Click outside to close */}
+              <form method="dialog" className="modal-backdrop">
+                <button>close</button>
+              </form>
+            </dialog>
+            {/* Form & Modal */}
           </div>
         </div>
         {/* Input */}
         <div className="flex items-center gap-2 bg-white shadow-sm px-4 py-2 mt-2 rounded-lg">
-          <label className="input bg-gray-100 w-[45%]">
+          <label className="input bg-gray-100 w-[40%]">
             <SearchNormal size={20} color="gray" />
             <input
               type="search"
               required
               placeholder="Search Satpam ID, Name, Or Station"
               className="text-gray-700 text-sm bg-gray-100"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </label>
 
           <div className="bg-gray-100 rounded-lg px-2 py-2 flex gap-3">
             {filterRole.map((item) => (
-              <div className="flex items-center gap-1">
+              <button
+                key={item.name}
+                type="button"
+                onClick={() => setSelectedRole(item.role)}
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-color ${selectedRole === item.role ? "bg-white shadow-sm" : "hover:bg-white/50"}`}
+              >
                 <p className="text-gray-800 text-xs">{item.name}</p>
                 <div className="bg-blue-100 rounded-full px-2 py-1">
                   <p className="text-gray-800 text-xs">{item.value}</p>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
 
@@ -301,7 +592,7 @@ const UserManage = () => {
 
         {/* Table */}
         <div className="mt-5 rounded-lg bg-white p-4 shadow-sm">
-          <div className="mt-4 overflow-hidden rounded-lg border border-gray-200 bg-white">
+          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-100">
@@ -333,51 +624,153 @@ const UserManage = () => {
                 </thead>
 
                 <tbody className="divide-y divide-gray-100">
-                  {userTable.map((item) => (
-                    <tr className="transition-colors hover:bg-gray-50">
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-gray-900">
-                          {item.nama}
+                  {currentUsers.length > 0 ? (
+                    currentUsers.map((item) => {
+                      return (
+                        <tr
+                          key={item.Nip}
+                          className="transition-colors hover:bg-gray-50"
+                        >
+                          <td className="px-4 py-3">
+                            <div className="font-medium text-gray-900">
+                              {item.nama}
+                            </div>
+
+                            <div className="text-xs text-gray-500">
+                              {item.section}
+                            </div>
+                          </td>
+
+                          <td className="px-4 py-3">
+                            <div className="font-medium text-gray-800">
+                              {item.unit}
+                            </div>
+
+                            <div className="text-xs text-gray-500">
+                              Main Gate
+                            </div>
+                          </td>
+
+                          <td className="px-4 py-3">
+                            <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
+                              {item.role}
+                            </span>
+                          </td>
+
+                          <td className="px-4 py-3">
+                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
+                              {item.device}
+                            </span>
+                          </td>
+
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="checkbox"
+                                className="toggle toggle-success toggle-sm"
+                                checked={item.status === "Aktif"}
+                                onChange={() => handleStatusChange(item.Nip)}
+                              />
+
+                              <span
+                                className={`text-xs font-medium ${
+                                  item.status === "Aktif"
+                                    ? "text-green-700"
+                                    : "text-gray-500"
+                                }`}
+                              >
+                                {item.status}
+                              </span>
+                            </div>
+                          </td>
+
+                          <td className="px-4 py-3 text-center">
+                            <button className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200">
+                              Detail
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={6}>
+                        <div className="flex min-h-[250px] flex-col items-center justify-center">
+                          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100">
+                            <SearchStatus
+                              size={28}
+                              color="#9CA3AF"
+                              variant="Linear"
+                            />
+                          </div>
+
+                          <p className="text-sm font-semibold text-gray-800">
+                            User Not Found
+                          </p>
+
+                          <p className="mt-1 text-xs text-gray-500">
+                            Tidak ada user yang sesuai dengan pencarian atau
+                            filter.
+                          </p>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {item.section}
-                        </div>
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-gray-800">
-                          {item.unit}
-                        </div>
-                        <div className="text-xs text-gray-500">Main Gate</div>
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
-                          {item.role}
-                        </span>
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
-                          {item.device}
-                        </span>
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
-                          {item.status}
-                        </span>
-                      </td>
-
-                      <td className="px-4 py-3 text-center">
-                        <button className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200">
-                          Detail
-                        </button>
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
+            </div>
+
+            {/* PAGINATION */}
+            <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
+              <div className="text-xs text-gray-500">
+                Menampilkan{" "}
+                <span className="font-medium text-gray-700">
+                  {startIndex + 1}
+                </span>{" "}
+                -{" "}
+                <span className="font-medium text-gray-700">
+                  {Math.min(startIndex + itemPerPage, users.length)}
+                </span>{" "}
+                dari{" "}
+                <span className="font-medium text-gray-700">
+                  {users.length}
+                </span>{" "}
+                personel
+              </div>
+
+              <div className="join">
+                <button
+                  className="join-item btn btn-sm"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => prev - 1)}
+                >
+                  «
+                </button>
+
+                {Array.from({ length: totalPages }, (_, index) => {
+                  const page = index + 1;
+
+                  return (
+                    <button
+                      key={page}
+                      className={`join-item btn btn-sm ${
+                        currentPage === page ? "btn-active" : ""
+                      }`}
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+
+                <button
+                  className="join-item btn btn-sm"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                >
+                  »
+                </button>
+              </div>
             </div>
           </div>
         </div>
