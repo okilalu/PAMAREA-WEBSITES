@@ -3,9 +3,11 @@ import {
   ArrowRight2,
   Calendar,
   DocumentDownload,
+  Location,
   Notification,
   Sun,
   UserOctagon,
+  Warning2,
 } from "iconsax-react";
 import React from "react";
 
@@ -16,26 +18,97 @@ const Dashboard = () => {
       time: "14.12 WIB",
       title: "Kawat Duri Pagar Pembatas Sektor Barat Terputus",
       guard: "Dimas",
-      location: "GI Gambir - Pagar Luar Barat (Zona 1)",
+      location: "Pagar Luar Barat (Zona 1)",
       note: "Potensi akses masuk liar di dekat tiang transmisi no. 4. Telah dipasang pita pengaman sementara.",
     },
     {
-      alert: "Critical",
-      time: "14.12 WIB",
-      title: "Kawat Duri Pagar Pembatas Sektor Barat Terputus",
-      guard: "Dimas",
-      location: "GI Gambir - Pagar Luar Barat (Zona 1)",
-      note: "Potensi akses masuk liar di dekat tiang transmisi no. 4. Telah dipasang pita pengaman sementara.",
+      alert: "High",
+      time: "13.47 WIB",
+      title: "Lampu Penerangan Area Parkir Tidak Berfungsi",
+      guard: "Rizky",
+      location: "Area Parkir Kendaraan",
+      note: "Area parkir sisi timur dalam kondisi minim penerangan. Perlu dilakukan pemeriksaan dan penggantian lampu.",
+    },
+    {
+      alert: "Medium",
+      time: "12.35 WIB",
+      title: "Genangan Air Ditemukan di Jalur Akses Panel",
+      guard: "Andi",
+      location: "Ruang Panel Utama",
+      note: "Terdapat genangan air di sekitar jalur akses panel. Area telah diberi tanda peringatan untuk mencegah risiko terpeleset.",
+    },
+    {
+      alert: "High",
+      time: "11.58 WIB",
+      title: "Pintu Gudang Material Tidak Terkunci Sempurna",
+      guard: "Fajar",
+      location: "Gudang Material Utama",
+      note: "Pintu gudang ditemukan tidak tertutup rapat. Telah dilakukan penguncian sementara dan dilaporkan kepada petugas terkait.",
+    },
+    {
+      alert: "Low",
+      time: "10.26 WIB",
+      title: "Tumpukan Material Menghalangi Sebagian Jalur Inspeksi",
+      guard: "Bima",
+      location: "Area Trafo Daya 1",
+      note: "Beberapa material berada terlalu dekat dengan jalur inspeksi. Diperlukan penataan ulang agar akses petugas tetap aman.",
     },
     {
       alert: "Critical",
-      time: "14.12 WIB",
-      title: "Kawat Duri Pagar Pembatas Sektor Barat Terputus",
-      guard: "Dimas",
-      location: "GI Gambir - Pagar Luar Barat (Zona 1)",
-      note: "Potensi akses masuk liar di dekat tiang transmisi no. 4. Telah dipasang pita pengaman sementara.",
+      time: "09.41 WIB",
+      title: "Pagar Pembatas Area Trafo Mengalami Kerusakan",
+      guard: "Hendra",
+      location: "Area Trafo Daya 2",
+      note: "Ditemukan bagian pagar pembatas yang bengkok dan berpotensi mengurangi keamanan area. Perlu segera dilakukan perbaikan.",
     },
   ];
+
+  const checkpointData = [
+    {
+      guard: "Dimas Pratama",
+      checkpoint: "Checkpoint A - Main Gate",
+      nfcStatus: "Verified",
+      gpsStatus: "On Site",
+      timestamp: "28 Sep 2026, 20:45",
+    },
+    {
+      guard: "Rizky Maulana",
+      checkpoint: "Checkpoint B - Parking Area",
+      nfcStatus: "Verified",
+      gpsStatus: "Off Site",
+      timestamp: "28 Sep 2026, 20:32",
+    },
+    {
+      guard: "Andi Saputra",
+      checkpoint: "Checkpoint C - Warehouse",
+      nfcStatus: "Pending",
+      gpsStatus: "On Site",
+      timestamp: "28 Sep 2026, 20:18",
+    },
+    {
+      guard: "Fajar Hidayat",
+      checkpoint: "Checkpoint D - Back Gate",
+      nfcStatus: "Verified",
+      gpsStatus: "On Site",
+      timestamp: "28 Sep 2026, 19:57",
+    },
+    {
+      guard: "Bima Setiawan",
+      checkpoint: "Checkpoint E - Lobby",
+      nfcStatus: "Failed",
+      gpsStatus: "On Site",
+      timestamp: "28 Sep 2026, 19:41",
+    },
+    {
+      guard: "Hendra Wijaya",
+      checkpoint: "Checkpoint F - Transformer Area",
+      nfcStatus: "Verified",
+      gpsStatus: "Off Site",
+      timestamp: "28 Sep 2026, 19:26",
+    },
+  ];
+
+  const sliceData = cardHazard.slice(0, 3);
   return (
     <div className="min-h-screen ">
       <div className="px-6 flex justify-between breadcrumbs text-sm bg-white border-b border-gray-200 h-14">
@@ -60,37 +133,54 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-      <div className="px-6">
+      <div className="px-6 pb-6">
         {/* Title */}
-        <div className="bg-white shadow-sm rounded-lg p-4 mt-3 h-32">
-          <div className="grid grid-cols-2 gap-5">
-            <div className="">
-              <h1 className="text-gray-800 font-bold text-2xl">
-                {" "}
-                Executive Overview - Gardu Induk (GI){" "}
+        <div className="mt-3 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-6">
+            {/* Information */}
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold text-gray-800">
+                Ringkasan Eksekutif - Gardu Induk (GI)
               </h1>
-              <p className="text-gray-600 text-sm">
-                Real-time security tour compliance and operational perimeter
-                surveillence
+
+              <p className="mt-1 text-sm text-gray-500">
+                Pemantauan kepatuhan patroli keamanan dan pengawasan perimeter
+                operasional secara real-time.
               </p>
             </div>
 
-            <div className="mt-5">
-              <div className="flex gap-1 mb-2">
-                <div className="bg-gray-100 rounded-sm px-4 py-1.5 flex items-center gap-1">
-                  <Sun size={17} color="gray" />
-                  <p className="text-gray-800 text-sm font-semibold">
-                    Shift Pagi (07:00 - 15:00)
+            {/* Controls */}
+            <div className="flex shrink-0 items-center gap-2">
+              {/* Shift */}
+              <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+                <Sun size={17} color="#6B7280" />
+
+                <div>
+                  <p className="text-[11px] text-gray-400">Shift Aktif</p>
+
+                  <p className="text-xs font-semibold text-gray-700">
+                    Pagi · 07:00 - 15:00
                   </p>
                 </div>
-                <div className="bg-gray-200 rounded-sm px-4 py-1.5 flex items-center gap-1">
-                  <Calendar color="gray" size={17} variant="Bulk" />
-                  <p className="text-gray-800 text-sm font-semibold">Today</p>
+              </div>
+
+              {/* Date */}
+              <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+                <Calendar size={17} color="#6B7280" variant="Bulk" />
+
+                <div>
+                  <p className="text-[11px] text-gray-400">Periode</p>
+
+                  <p className="text-xs font-semibold text-gray-700">
+                    Hari Ini
+                  </p>
                 </div>
               </div>
-              <button className="flex gap-2 bg-blue-900 px-4 py-1.5 rounded-sm">
+
+              {/* Export */}
+              <button className="flex items-center gap-2 rounded-md bg-blue-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-800">
                 <DocumentDownload size={17} color="white" />
-                <p className="text-xs font-semibold">Export Log</p>
+                Export Log
               </button>
             </div>
           </div>
@@ -98,68 +188,107 @@ const Dashboard = () => {
         {/* Title */}
 
         {/* Card */}
-        <div className="grid grid-cols-3 mt-5 gap-2">
-          <div className="bg-white shadow-sm rounded-md p-2 h-36">
-            <div className="flex justify-between items-center">
-              <h1 className="text-gray-800">Total Patrol Today</h1>
-              <div className="bg-blue-100 rounded-lg p-2">
-                <UserOctagon size={22} color="blue" />
+        <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
+          {/* Total Patrol */}
+          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">
+                  Total Patrol Today
+                </p>
+
+                <div className="mt-5 flex items-end gap-1">
+                  <h1 className="text-2xl font-bold text-gray-800">42</h1>
+
+                  <p className="mb-0.5 text-sm text-gray-500">Officers</p>
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-blue-50 p-2.5">
+                <UserOctagon size={22} color="#2563EB" />
               </div>
             </div>
-            <div className="flex gap-1 mt-7">
-              <h1 className="font-bold text-xl text-gray-800">42</h1>
-              <p className="text-sm text-gray-600 self-end">Officers</p>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex gap-1">
-                <h3 className="text-gray-500 text-sm">Target :</h3>
-                <p className="text-gray-500 text-sm">40 required</p>
+
+            <div className="mt-4 flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-gray-400">Target</span>
+
+                <span className="text-xs font-medium text-gray-600">
+                  40 officers
+                </span>
               </div>
-              <div className="bg-blue-100 rounded-lg px-2 py-1">
-                <p className="text-gray-500 text-sm">+3 Shift B</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white shadow-sm rounded-md p-2 h-36">
-            <div className="flex justify-between items-center">
-              <h1 className="text-gray-800">Active Patrol Checkpoints</h1>
-              <div className="bg-blue-100 rounded-lg p-2">
-                <UserOctagon size={22} color="blue" />
-              </div>
-            </div>
-            <div className="flex gap-1 mt-5">
-              <h1 className="font-bold text-xl text-gray-800">128</h1>
-              <p className="text-sm text-gray-600 self-end">Points</p>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex gap-1">
-                <h3 className="text-gray-500 text-sm">Target :</h3>
-                <p className="text-gray-500 text-sm">40 required</p>
-              </div>
-              <div className="bg-blue-100 rounded-lg px-2 py-1">
-                <p className="text-gray-500 text-sm">+3 Shift B</p>
-              </div>
+
+              <span className="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-600">
+                +2 above target
+              </span>
             </div>
           </div>
-          <div className="bg-white shadow-sm rounded-md p-2 h-36">
-            <div className="flex justify-between items-center">
-              <h1 className="text-gray-800">Active Out-Of-Radius Alert</h1>
-              <div className="bg-blue-100 rounded-lg p-2">
-                <UserOctagon size={22} color="blue" />
+
+          {/* Active Checkpoints */}
+          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">
+                  Active Patrol Checkpoints
+                </p>
+
+                <div className="mt-5 flex items-end gap-1">
+                  <h1 className="text-2xl font-bold text-gray-800">128</h1>
+
+                  <p className="mb-0.5 text-sm text-gray-500">Points</p>
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-indigo-50 p-2.5">
+                <Location size={22} color="#4F46E5" />
               </div>
             </div>
-            <div className="flex gap-1 mt-5">
-              <h1 className="font-bold text-xl text-gray-800">2</h1>
-              <p className="text-sm text-gray-600 self-end">Incident</p>
+
+            <div className="mt-4 flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-gray-400">Status</span>
+
+                <span className="text-xs font-medium text-gray-600">
+                  All systems active
+                </span>
+              </div>
+
+              <span className="rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-600">
+                128 / 128
+              </span>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex gap-1">
-                <h3 className="text-gray-500 text-sm">Target :</h3>
-                <p className="text-gray-500 text-sm">40 required</p>
+          </div>
+
+          {/* Out Of Radius Alert */}
+          <div className="rounded-lg border border-red-100 bg-white p-4 shadow-sm">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">
+                  Out-Of-Radius Alert
+                </p>
+
+                <div className="mt-5 flex items-end gap-1">
+                  <h1 className="text-2xl font-bold text-red-600">2</h1>
+
+                  <p className="mb-0.5 text-sm text-gray-500">Incidents</p>
+                </div>
               </div>
-              <div className="bg-blue-100 rounded-lg px-2 py-1">
-                <p className="text-gray-500 text-sm">+3 Shift B</p>
+
+              <div className="rounded-lg bg-red-50 p-2.5">
+                <Warning2 size={22} color="#DC2626" />
               </div>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-gray-400">
+                  Requires attention
+                </span>
+              </div>
+
+              <span className="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-600">
+                2 Active
+              </span>
             </div>
           </div>
         </div>
@@ -177,7 +306,7 @@ const Dashboard = () => {
                   Last verified checkpoints across substation perimeters
                 </p>
               </div>
-              <button className="flex items-center justify-center">
+              <button className="flex items-center justify-center cursor-pointer">
                 <p className="text-xs tracking-wider text-blue-800 font-semibold">
                   View All Logs
                 </p>
@@ -213,135 +342,50 @@ const Dashboard = () => {
                   </thead>
 
                   <tbody className="divide-y divide-gray-100">
-                    <tr className="transition-colors hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900">
-                        Cy Ganderton
-                      </td>
+                    {checkpointData.map((item, index) => (
+                      <tr
+                        key={index}
+                        className="transition-colors hover:bg-gray-50"
+                      >
+                        <td className="px-4 py-3 font-medium text-gray-900">
+                          {item.guard}
+                        </td>
 
-                      <td className="px-4 py-3 text-gray-600">
-                        Checkpoint A - Main Gate
-                      </td>
+                        <td className="px-4 py-3 text-gray-600">
+                          {item.checkpoint}
+                        </td>
 
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
-                          Verified
-                        </span>
-                      </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
+                              item.nfcStatus === "Verified"
+                                ? "bg-green-50 text-green-700"
+                                : item.nfcStatus === "Pending"
+                                  ? "bg-yellow-50 text-yellow-700"
+                                  : "bg-red-50 text-red-700"
+                            }`}
+                          >
+                            {item.nfcStatus}
+                          </span>
+                        </td>
 
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
-                          On Site
-                        </span>
-                      </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
+                              item.gpsStatus === "On Site"
+                                ? "bg-green-50 text-green-700"
+                                : "bg-red-50 text-red-700"
+                            }`}
+                          >
+                            {item.gpsStatus}
+                          </span>
+                        </td>
 
-                      <td className="whitespace-nowrap px-4 py-3 text-gray-500">
-                        28 Sep 2026, 20:45
-                      </td>
-                    </tr>
-
-                    <tr className="transition-colors hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900">
-                        Hart Hagerty
-                      </td>
-
-                      <td className="px-4 py-3 text-gray-600">
-                        Checkpoint B - Parking
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
-                          Verified
-                        </span>
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">
-                          Off Site
-                        </span>
-                      </td>
-
-                      <td className="whitespace-nowrap px-4 py-3 text-gray-500">
-                        28 Sep 2026, 20:32
-                      </td>
-                    </tr>
-
-                    <tr className="transition-colors hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900">
-                        Brice Swyre
-                      </td>
-
-                      <td className="px-4 py-3 text-gray-600">
-                        Checkpoint C - Warehouse
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-medium text-yellow-700">
-                          Pending
-                        </span>
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
-                          On Site
-                        </span>
-                      </td>
-
-                      <td className="whitespace-nowrap px-4 py-3 text-gray-500">
-                        28 Sep 2026, 20:18
-                      </td>
-                    </tr>
-
-                    <tr className="transition-colors hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900">
-                        Marjy Ferencz
-                      </td>
-
-                      <td className="px-4 py-3 text-gray-600">
-                        Checkpoint D - Back Gate
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
-                          Verified
-                        </span>
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
-                          On Site
-                        </span>
-                      </td>
-
-                      <td className="whitespace-nowrap px-4 py-3 text-gray-500">
-                        28 Sep 2026, 19:57
-                      </td>
-                    </tr>
-
-                    <tr className="transition-colors hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900">
-                        Yancy Tear
-                      </td>
-
-                      <td className="px-4 py-3 text-gray-600">
-                        Checkpoint E - Lobby
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">
-                          Failed
-                        </span>
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
-                          On Site
-                        </span>
-                      </td>
-
-                      <td className="whitespace-nowrap px-4 py-3 text-gray-500">
-                        28 Sep 2026, 19:41
-                      </td>
-                    </tr>
+                        <td className="whitespace-nowrap px-4 py-3 text-gray-500">
+                          {item.timestamp}
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -349,23 +393,33 @@ const Dashboard = () => {
           </div>
 
           <div className="mt-5 bg-white p-4 shadow-sm rounded-lg w-[40%]">
-            <div className="bg-gray-200 rounded-lg p-3 flex items-center gap-2">
-              <Notification size={20} color="red" />
-              <h2 className="text-gray-800 font-semibold">
-                Critical Findings Feed
-              </h2>
-              <div className="flex gap-1 bg-red-800 rounded-2xl px-2 py-0.5 ml-4">
-                <p className="text-xs">3</p>
-                <p className="text-xs">Urgent</p>
+            <div className="bg-gray-200 rounded-lg p-3 flex items-center justify-between gap-2">
+              <div className="flex items-center">
+                <div className="flex items-center gap-1">
+                  <Notification size={20} color="red" />
+                  <h2 className="text-gray-800 font-semibold">
+                    Critical Findings Feed
+                  </h2>
+                </div>
+                <div className="flex gap-1 bg-red-800 rounded-2xl px-2 py-0.5 ml-2">
+                  <p className="text-xs  text-white">3</p>
+                  <p className="text-xs text-white">Urgent</p>
+                </div>
               </div>
+              <button className="flex items-center justify-center cursor-pointer">
+                <p className="text-xs tracking-wider text-blue-800 font-semibold">
+                  View All Logs
+                </p>
+                <ArrowRight2 size={17} color="blue" />
+              </button>
             </div>
 
             {/* Card hazard */}
-            {cardHazard.map((item) => (
+            {sliceData.map((item) => (
               <div className="bg-gray-200 rounded-lg p-3 my-5">
                 <div className="flex items-center justify-between">
                   <div className="bg-red-800 rounded-sm px-2">
-                    <p className="text-sm tracking-wider font-semibold">
+                    <p className="text-sm text-white tracking-wider font-semibold">
                       {item.alert}
                     </p>
                   </div>
