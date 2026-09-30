@@ -9,12 +9,22 @@ import {
 import React, { useMemo, useState } from "react";
 
 const UserManage = () => {
+  const listUnit = [
+    "Area Trafo Daya 1",
+    "Area Trafo Daya 2",
+    "Gudang Material Utama",
+    "Ruang Panel Utama",
+    "Gerbang Utama",
+    "Area Parkir Kendaraan",
+  ];
+
+  const listStatus = ["Aktif", "Nonaktif"];
   const userTable = [
     {
       nama: "Dimas",
       Nip: "520210210210120",
       section: "SEC-001",
-      unit: "Zona 1",
+      unit: "Area Trafo Daya 1",
       role: "Admin",
       device: "Samsung",
       status: "Aktif",
@@ -23,7 +33,7 @@ const UserManage = () => {
       nama: "Andi",
       Nip: "520210210210121",
       section: "SEC-002",
-      unit: "Zona 2",
+      unit: null,
       role: "Security",
       device: "Samsung",
       status: "Aktif",
@@ -32,7 +42,7 @@ const UserManage = () => {
       nama: "Rizky",
       Nip: "520210210210122",
       section: "SEC-003",
-      unit: "Zona 3",
+      unit: "Area Trafo Daya 2",
       role: "Security",
       device: "Xiaomi",
       status: "Aktif",
@@ -41,7 +51,7 @@ const UserManage = () => {
       nama: "Fajar",
       Nip: "520210210210123",
       section: "SEC-004",
-      unit: "Zona 4",
+      unit: "Ruang Panel Utama",
       role: "Security",
       device: "Oppo",
       status: "Nonaktif",
@@ -50,7 +60,7 @@ const UserManage = () => {
       nama: "Bayu",
       Nip: "520210210210124",
       section: "SEC-005",
-      unit: "Zona 5",
+      unit: "Gudang Material Utama",
       role: "Security",
       device: "Samsung",
       status: "Aktif",
@@ -59,7 +69,7 @@ const UserManage = () => {
       nama: "Ardi",
       Nip: "520210210210125",
       section: "SEC-006",
-      unit: "Zona 6",
+      unit: "Gerbang Utama",
       role: "Security",
       device: "Vivo",
       status: "Aktif",
@@ -68,7 +78,7 @@ const UserManage = () => {
       nama: "Rian",
       Nip: "520210210210126",
       section: "SEC-007",
-      unit: "Zona 7",
+      unit: null,
       role: "Security",
       device: "Samsung",
       status: "Aktif",
@@ -77,7 +87,7 @@ const UserManage = () => {
       nama: "Ilham",
       Nip: "520210210210127",
       section: "SEC-008",
-      unit: "Zona 8",
+      unit: "Area Parkir Kendaraan",
       role: "Security",
       device: "Xiaomi",
       status: "Aktif",
@@ -86,7 +96,7 @@ const UserManage = () => {
       nama: "Agus",
       Nip: "520210210210128",
       section: "SEC-009",
-      unit: "Zona 9",
+      unit: null,
       role: "Security",
       device: "Oppo",
       status: "Aktif",
@@ -95,37 +105,19 @@ const UserManage = () => {
       nama: "Rendi",
       Nip: "520210210210129",
       section: "SEC-010",
-      unit: "Zona 10",
+      unit: "Ruang Panel Utama",
       role: "Security",
       device: "Samsung",
       status: "Aktif",
     },
   ];
 
-  // const filterUnit = [
-  //   {
-  //     name: "Zona 1",
-  //   },
-  //   {
-  //     name: "Zona 2",
-  //   },
-  //   {
-  //     name: "Zona 3",
-  //   },
-  // ];
-
-  // const filterStatus = [
-  //   {
-  //     status: "Aktif",
-  //   },
-  //   {
-  //     status: "Non-Aktif",
-  //   },
-  // ];
   const [users, setUsers] = useState(userTable);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
+  const [selectedUnit, setSelectedUnit] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
 
   const filteredUser = useMemo(() => {
     const keyword = search.toLowerCase().trim();
@@ -135,14 +127,18 @@ const UserManage = () => {
         item.nama.toLowerCase().includes(keyword) ||
         item.Nip.toLowerCase().includes(keyword) ||
         item.section.toLowerCase().includes(keyword) ||
-        item.unit.toLowerCase().includes(keyword) ||
+        item.unit?.toLowerCase().includes(keyword) ||
         item.device.toLowerCase().includes(keyword);
 
       const matchesRole = selectedRole === "" || item.role === selectedRole;
 
-      return matchesSearch && matchesRole;
+      const matchUnit = selectedUnit === "" || item.unit === selectedUnit;
+      const matchStatus =
+        selectedStatus === "" || item.status === selectedStatus;
+
+      return matchesSearch && matchesRole && matchUnit && matchStatus;
     });
-  }, [users, search, selectedRole]);
+  }, [users, search, selectedRole, selectedUnit, selectedStatus]);
 
   const itemPerPage = 6;
 
@@ -223,10 +219,13 @@ const UserManage = () => {
 
       <div className="px-6">
         <div className="my-5 grid grid-cols-2 gap-4">
-          <div className="">
-            <h1 className="text-[#003B73] font-bold text-2xl">
-              Management User & Security Patrol
-            </h1>
+          <div>
+            <div className="flex items-center gap-1">
+              <div className="bg-[#00529C]  px-1 py-3 h-[1px] rounded-xs" />
+              <h1 className="font-bold text-2xl">
+                Management User & Security Patrol
+              </h1>
+            </div>
             <p className="text-gray-600 tracking-wide text-sm">
               Kelola akun personel keamanan gardu induk, hak akses role, serta
               otentikasi perangkat terikat patroli NFC/GPS.
@@ -341,9 +340,9 @@ const UserManage = () => {
                         <option disabled selected>
                           Select station
                         </option>
-                        <option>Station A</option>
-                        <option>Station B</option>
-                        <option>Station C</option>
+                        {listUnit.map((item) => (
+                          <option>{item}</option>
+                        ))}
                       </select>
                     </div>
 
@@ -431,6 +430,7 @@ const UserManage = () => {
             {/* Form & Modal */}
           </div>
         </div>
+
         {/* Input */}
         <div className="flex items-center gap-2 bg-white shadow-sm px-4 py-2 mt-2 rounded-lg">
           <label className="input bg-gray-100 w-[40%]">
@@ -454,9 +454,9 @@ const UserManage = () => {
                 className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-color ${selectedRole === item.role ? "bg-white shadow-sm" : "hover:bg-white/50"}`}
               >
                 <p className="text-gray-800 text-xs">{item.name}</p>
-                <div className="bg-blue-100 rounded-full px-2 py-1">
+                {/* <div className="bg-blue-100 rounded-full px-2 py-1">
                   <p className="text-gray-800 text-xs">{item.value}</p>
-                </div>
+                </div> */}
               </button>
             ))}
           </div>
@@ -465,35 +465,52 @@ const UserManage = () => {
             <div
               tabIndex={0}
               role="button"
-              className="btn bg-gray-100 flex items-center"
+              className="btn bg-gray-100 flex items-center gap-2 border-0"
             >
-              <a href="" className="text-xs">
-                Semua Unit / GI
-              </a>
+              <span className="text-xs text-gray-700">
+                {selectedUnit || "Semua Unit"}
+              </span>
 
               <ArrowDown2 size={17} color="gray" />
             </div>
+
             <ul
               tabIndex={-1}
               className="dropdown-content menu bg-gray-100 rounded-box z-1 w-52 p-2 shadow-sm"
             >
               <li>
-                <a>Item 1</a>
+                <button
+                  type="button"
+                  onClick={() => setSelectedUnit("")}
+                  className="text-xs"
+                >
+                  Semua Unit
+                </button>
               </li>
-              <li>
-                <a>Item 2</a>
-              </li>
+
+              {listUnit.map((item) => (
+                <li key={item}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedUnit(item)}
+                    className="text-xs"
+                  >
+                    {item}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
+
           <div className="dropdown dropdown-start bg-gray-100 rounded-lg">
             <div
               tabIndex={0}
               role="button"
               className="btn bg-gray-100 flex items-center"
             >
-              <a href="" className="text-xs">
-                Status
-              </a>
+              <span className="text-xs text-gray-700">
+                {selectedUnit || "Semua"}
+              </span>
 
               <ArrowDown2 size={17} color="gray" />
             </div>
@@ -502,11 +519,26 @@ const UserManage = () => {
               className="dropdown-content menu bg-gray-100 rounded-box z-1 w-52 p-2 shadow-sm"
             >
               <li>
-                <a>Item 1</a>
+                <button
+                  type="button"
+                  onClick={() => setSelectedStatus("")}
+                  className="text-xs"
+                >
+                  Semua
+                </button>
               </li>
-              <li>
-                <a>Item 2</a>
-              </li>
+
+              {listStatus.map((item) => (
+                <li key={item}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedStatus(item)}
+                    className="text-xs"
+                  >
+                    {item}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -610,10 +642,6 @@ const UserManage = () => {
                     </th>
 
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                      Device
-                    </th>
-
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
                       Status Akun
                     </th>
 
@@ -631,6 +659,7 @@ const UserManage = () => {
                           key={item.Nip}
                           className="transition-colors hover:bg-gray-50"
                         >
+                          {/* PERSONEL */}
                           <td className="px-4 py-3">
                             <div className="font-medium text-gray-900">
                               {item.nama}
@@ -641,28 +670,35 @@ const UserManage = () => {
                             </div>
                           </td>
 
+                          {/* PENUGASAN */}
                           <td className="px-4 py-3">
-                            <div className="font-medium text-gray-800">
-                              {item.unit}
-                            </div>
+                            {item.unit ? (
+                              <div>
+                                <div className="font-medium text-gray-800">
+                                  {item.unit}
+                                </div>
 
-                            <div className="text-xs text-gray-500">
-                              Main Gate
-                            </div>
+                                <div className="text-xs text-gray-500">
+                                  Main Gate
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <p className="text-gray-500 italic text-xs">
+                                  Unit not assign now
+                                </p>
+                              </div>
+                            )}
                           </td>
 
+                          {/* ROLE */}
                           <td className="px-4 py-3">
                             <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
                               {item.role}
                             </span>
                           </td>
 
-                          <td className="px-4 py-3">
-                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
-                              {item.device}
-                            </span>
-                          </td>
-
+                          {/* STATUS */}
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
                               <input
@@ -684,6 +720,7 @@ const UserManage = () => {
                             </div>
                           </td>
 
+                          {/* ACTION */}
                           <td className="px-4 py-3 text-center">
                             <button className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200">
                               Detail
@@ -694,7 +731,7 @@ const UserManage = () => {
                     })
                   ) : (
                     <tr>
-                      <td colSpan={6}>
+                      <td colSpan={5}>
                         <div className="flex min-h-[250px] flex-col items-center justify-center">
                           <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100">
                             <SearchStatus
