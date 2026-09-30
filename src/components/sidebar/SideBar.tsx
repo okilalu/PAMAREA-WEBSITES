@@ -11,6 +11,8 @@ import {
 import Dashboard from "../../pages/Dashboard";
 import UserManage from "../../pages/UserManage";
 import pamareaLogo from "../../assets/img/PAMAREA.png";
+import Checkpoint from "../../pages/Checkpoint";
+import QuestionBuilder from "../../pages/QuestionBuilder";
 
 type MenuItem = {
   name: string;
@@ -60,22 +62,10 @@ const Sidebar = () => {
         return <UserManage />;
 
       case "Patrol Point Setup":
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-800">
-              Patrol Point Setup
-            </h1>
-          </div>
-        );
+        return <Checkpoint />;
 
       case "Question Builder":
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-800">
-              Question Builder
-            </h1>
-          </div>
-        );
+        return <QuestionBuilder />;
 
       case "Real-Time Monitoring":
         return (
@@ -103,7 +93,7 @@ const Sidebar = () => {
   return (
     <div className="min-h-screen bg-[#F5F8FA]">
       <aside className="fixed left-0 top-0 z-40 h-screen w-72 bg-[#0B3B60]">
-        <div className="flex h-16 items-center justify-between gap-3 bg-[#002541] px-6">
+        <div className="flex h-16 items-center gap-3 bg-[#002541] px-6">
           <img
             src={pamareaLogo}
             alt="PAMAREA Logo"
@@ -111,7 +101,7 @@ const Sidebar = () => {
           />
 
           <div>
-            <h1 className="text-md font-bold text-white">PLN Patrol</h1>
+            <h1 className="text-md font-bold text-white">PAMAREA</h1>
 
             <p className="text-xs font-semibold uppercase text-[#009EDA]">
               Command Center
