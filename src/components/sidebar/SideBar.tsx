@@ -3,6 +3,8 @@ import {
   Category,
   LocationDiscover,
   Pointer,
+  SecurityCard,
+  SecurityTime,
   TaskSquare,
   TheGraph,
   UserTag,
@@ -28,12 +30,20 @@ const Sidebar = () => {
       icon: Category,
     },
     {
+      name: "Patrol Point Setup",
+      icon: LocationDiscover,
+    },
+    {
       name: "User Management",
       icon: UserTag,
     },
     {
-      name: "Patrol Point Setup",
-      icon: LocationDiscover,
+      name: "NFC Management",
+      icon: SecurityCard,
+    },
+    {
+      name: "Schedule Management",
+      icon: SecurityTime,
     },
     {
       name: "Question Builder",
@@ -58,11 +68,25 @@ const Sidebar = () => {
       case "Dashboard":
         return <Dashboard />;
 
-      case "User Management":
-        return <UserManage />;
-
       case "Patrol Point Setup":
         return <Checkpoint />;
+
+      case "User Management":
+        return <UserManage />;
+      case "NFC Management":
+        return (
+          <div className="p-6">
+            <h1 className="text-2xl font-bold text-gray-800">NFC Management</h1>
+          </div>
+        );
+      case "Schedule Management":
+        return (
+          <div className="p-6">
+            <h1 className="text-2xl font-bold text-gray-800">
+              Schedule Management
+            </h1>
+          </div>
+        );
 
       case "Question Builder":
         return <QuestionBuilder />;
