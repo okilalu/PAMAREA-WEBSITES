@@ -445,15 +445,19 @@ const UserManage = () => {
             />
           </label>
 
-          <div className="bg-gray-100 rounded-lg px-2 py-2 flex gap-3">
+          <div className="bg-gray-100 rounded-lg px-4 py-1 flex gap-3">
             {filterRole.map((item) => (
               <button
                 key={item.name}
                 type="button"
                 onClick={() => setSelectedRole(item.role)}
-                className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-color ${selectedRole === item.role ? "bg-white shadow-sm" : "hover:bg-white/50"}`}
+                className={`flex items-center justify-center gap-1 px-1 py-2 rounded-lg transition-color ${selectedRole === item.role ? "bg-[#003B73] shadow-sm" : "hover:bg-white/50"}`}
               >
-                <p className="text-gray-800 text-xs">{item.name}</p>
+                <p
+                  className={`text-xs ${selectedRole === item.role ? "text-white" : "text-gray-700"}`}
+                >
+                  {item.name}
+                </p>
                 {/* <div className="bg-blue-100 rounded-full px-2 py-1">
                   <p className="text-gray-800 text-xs">{item.value}</p>
                 </div> */}

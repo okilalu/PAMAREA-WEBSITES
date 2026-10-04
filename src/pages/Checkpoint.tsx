@@ -8,9 +8,10 @@ import {
   UserAdd,
   Warning2,
 } from "iconsax-react";
-import React from "react";
+import React, { useState } from "react";
 
 const Checkpoint = () => {
+  const [selectedStatus, setSelectedStatus] = useState("Semua");
   const filterStatus = [
     {
       name: "Semua",
@@ -183,18 +184,22 @@ const Checkpoint = () => {
             />
           </label>
 
-          <div className="bg-gray-100 rounded-lg px-4 py-2 grid grid-cols-4 w-[50%] gap-3">
+          <div className="bg-gray-100 rounded-lg px-4 py-1 grid grid-cols-4 w-[50%] gap-3">
             {filterStatus.map((item) => (
               <button
                 key={item.name}
                 type="button"
-                // onClick={() => setSelectedRole(item.role)}
-                // className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-color ${selectedRole === item.role ? "bg-white shadow-sm" : "hover:bg-white/50"}`}
+                onClick={() => setSelectedStatus(item.name)}
+                className={`flex items-center justify-center gap-1 px-1 py-2 rounded-lg transition-color ${selectedStatus === item.name ? "bg-[#003B73] shadow-sm" : "hover:bg-white/50"}`}
               >
-                <p className="text-gray-800 text-xs">{item.name}</p>
-                <div className="bg-blue-100 rounded-full px-2 py-1">
+                <p
+                  className={`text-xs text-center ${selectedStatus === item.name ? "text-white" : "text-gray-700"}`}
+                >
+                  {item.name}
+                </p>
+                {/* <div className="bg-blue-100 rounded-full px-2 py-1">
                   <p className="text-gray-800 text-xs">{item.value}</p>
-                </div>
+                </div> */}
               </button>
             ))}
           </div>
@@ -202,7 +207,7 @@ const Checkpoint = () => {
           <button
             type="button"
             onClick={() => console.log("Click")}
-            className="bg-[#FED400] shadow-sm w-[30%] rounded-lg p-3 cursor-pointer"
+            className="bg-[#FED400] shadow-sm w-[30%] rounded-lg px-3 py-2 cursor-pointer"
           >
             <div className="flex items-center gap-1">
               <div className="bg-[#FED400] p-1 rounded-lg">
