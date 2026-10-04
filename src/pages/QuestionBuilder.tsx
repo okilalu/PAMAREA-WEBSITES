@@ -15,6 +15,8 @@ import React, { useMemo, useState } from "react";
 
 const QuestionBuilder = () => {
   const [selectedCheckpoint, setSelectedCheckpoint] = useState("");
+  const [selectedShift, setSelectedShift] = useState("");
+
   const questionBuilder = [
     {
       id: 1,
@@ -142,7 +144,7 @@ const QuestionBuilder = () => {
     return questionBuilder.filter((q) => {
       return selectedCheckpoint === q.checkpoint;
     });
-  }, [questionBuilder, selectedCheckpoint]);
+  }, [selectedCheckpoint]);
 
   const checkpointList = useMemo(() => {
     return [...new Set(questionBuilder.map((q) => q.checkpoint))];
@@ -276,7 +278,50 @@ const QuestionBuilder = () => {
               </ul>
             </div>
 
-            <button className="bg-gray-200 rounded-sm w-[50%] px-2 py-1 cursor-pointer">
+            <div className="dropdown dropdown-start flex-1">
+              <div
+                tabIndex={0}
+                role="button"
+                className="bg-gray-200 rounded-sm px-3 py-2 cursor-pointer"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <SecurityUser size={17} color="gray" className="shrink-0" />
+
+                    <div className="min-w-0">
+                      <p className="text-xs text-gray-500">Pilih Shift:</p>
+
+                      <p className="text-xs text-gray-600 font-semibold">
+                        {selectedShift || "Pilih Shift"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <ArrowDown2 size={17} color="gray" className="shrink-0" />
+                </div>
+              </div>
+
+              <ul
+                tabIndex={-1}
+                className="dropdown-content menu bg-white rounded-lg z-10 w-48 p-2 mt-1 shadow-md border border-gray-200"
+              >
+                {["Shift 1 (Pagi)", "Shift 2 (Siang)", "Shift 3 (Malam)"].map(
+                  (shift) => (
+                    <li key={shift}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedShift(shift)}
+                        className="text-xs text-gray-600 hover:bg-gray-100 rounded-md"
+                      >
+                        {shift}
+                      </button>
+                    </li>
+                  ),
+                )}
+              </ul>
+            </div>
+
+            {/* <button className="bg-gray-200 rounded-sm w-[50%] px-2 py-1 cursor-pointer">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <SecurityUser size={17} color="gray" />
@@ -291,7 +336,7 @@ const QuestionBuilder = () => {
                 </div>
                 <ArrowDown2 size={17} color="gray" />
               </div>
-            </button>
+            </button> */}
           </div>
         </div>
 
@@ -306,73 +351,97 @@ const QuestionBuilder = () => {
           </div>
 
           <div className=" mt-3">
-            {filterQuestion.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center justify-between mb-4 bg-white rounded-lg px-3 py-2"
-              >
-                <div className="flex items-center gap-2 ">
-                  <div className="bg-[#00529C] px-3 py-1 rounded-lg">
-                    <p className="text-white text-md">
-                      {item.id.toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="ml-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="bg-[#E5EBF1] flex items-center gap-1 rounded-full px-2 py-0.5">
-                        <HashtagDown size={12} color="#0D457A" />
-                        <p className="text-xs text-[#0D457A] font-semibold">
-                          {item.type}
-                        </p>
+            {filterQuestion.length > 0 ? (
+              filterQuestion.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between mb-4 bg-white rounded-lg px-3 py-2"
+                >
+                  <div className="flex items-center gap-2 ">
+                    <div className="bg-[#00529C] px-3 py-1 rounded-lg">
+                      <p className="text-white text-md">
+                        {item.id.toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="ml-2">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="bg-[#E5EBF1] flex items-center gap-1 rounded-full px-2 py-0.5">
+                          <HashtagDown size={12} color="#0D457A" />
+                          <p className="text-xs text-[#0D457A] font-semibold">
+                            {item.type}
+                          </p>
+                        </div>
+                        <div className="bg-[#FEF2B2] flex items-center  gap-1 rounded-full px-2 py-0.5">
+                          <Sun size={12} color="#7B680F" />
+                          <p className="text-xs text-[#7B680F] font-semibold">
+                            {item.status}
+                          </p>
+                        </div>
                       </div>
-                      <div className="bg-[#FEF2B2] flex items-center  gap-1 rounded-full px-2 py-0.5">
-                        <Sun size={12} color="#7B680F" />
-                        <p className="text-xs text-[#7B680F] font-semibold">
-                          {item.status}
-                        </p>
+                      <p className="text-lg font-semibold">{item.question}</p>
+                      <div className="flex items-center  gap-2">
+                        <div className="flex items-center">
+                          <p className="text-xs text-gray-500">ID :</p>
+                          <p className="text-xs text-gray-500 font-semibold ml-1">
+                            {item.ids}
+                          </p>
+                        </div>
+                        <div className="flex items-center">
+                          <p className="text-xs text-gray-500">Kategori :</p>
+                          <p className="text-xs text-gray-500 font-semibold ml-1">
+                            {item.category}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    <p className="text-lg font-semibold">{item.question}</p>
-                    <div className="flex items-center  gap-2">
-                      <div className="flex items-center">
-                        <p className="text-xs text-gray-500">ID :</p>
-                        <p className="text-xs text-gray-500 font-semibold ml-1">
-                          {item.ids}
-                        </p>
-                      </div>
-                      <div className="flex items-center">
-                        <p className="text-xs text-gray-500">Kategori :</p>
-                        <p className="text-xs text-gray-500 font-semibold ml-1">
-                          {item.category}
-                        </p>
-                      </div>
-                    </div>
                   </div>
+
+                  <div className="flex items-center gap-2">
+                    <button className="flex items-center gap-1">
+                      <Edit size={17} color="gray" />
+                      <p className="text-xs text-gray-500 tracking-wide">
+                        Edit
+                      </p>
+                    </button>
+                    <button className="flex items-center gap-1">
+                      <Trash size={17} color="gray" />
+                      <p className="text-xs text-gray-500 tracking-wide">
+                        Hapus
+                      </p>
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="bg-white rounded-lg py-12 mb-4 flex flex-col items-center justify-center">
+                <div className="bg-gray-100 rounded-full p-4 mb-3">
+                  <TaskSquare size={28} color="#9CA3AF" />
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <button className="flex items-center gap-1">
-                    <Edit size={17} color="gray" />
-                    <p className="text-xs text-gray-500 tracking-wide">Edit</p>
-                  </button>
-                  <button className="flex items-center gap-1">
-                    <Trash size={17} color="gray" />
-                    <p className="text-xs text-gray-500 tracking-wide">Hapus</p>
-                  </button>
-                </div>
+                <p className="text-gray-700 font-semibold text-sm">
+                  Tidak ada data
+                </p>
+
+                <p className="text-gray-400 text-xs mt-1">
+                  Data pertanyaan tidak ditemukan
+                </p>
               </div>
-            ))}
+            )}
           </div>
         </div>
 
-        <button className="bg-gray-200 rounded-lg py-3 w-full">
-          <div className="flex items-center justify-center gap-2 flex-1">
-            <AddCircle size={17} color="gray" />
-            <p className="text-gray-500 font-semibold text-sm capitalize">
-              Sisipkan pertanyaan baru pada checkpoint ini
-            </p>
-          </div>
-        </button>
+        {filterQuestion.length > 0 ? (
+          <button className="bg-gray-200 rounded-lg py-3 w-full">
+            <div className="flex items-center justify-center gap-2 flex-1">
+              <AddCircle size={17} color="gray" />
+              <p className="text-gray-500 font-semibold text-sm capitalize">
+                Sisipkan pertanyaan baru pada checkpoint ini
+              </p>
+            </div>
+          </button>
+        ) : (
+          <></>
+        )}
       </div>
     </div>
   );
