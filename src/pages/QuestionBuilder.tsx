@@ -1,13 +1,17 @@
 import {
   AddCircle,
   ArrowDown2,
+  CloseCircle,
   Edit,
   HashtagDown,
   Location,
   LocationDiscover,
+  Radio,
   SecurityUser,
   Sun,
+  Task,
   TaskSquare,
+  TickCircle,
   Trash,
   UserAdd,
 } from "iconsax-react";
@@ -150,6 +154,19 @@ const QuestionBuilder = () => {
     return [...new Set(questionBuilder.map((q) => q.checkpoint))];
   }, []);
 
+  const handelOpenModal = () => {
+    const modal = document.getElementById(
+      "question_builder",
+    ) as HTMLDialogElement;
+    modal.showModal();
+  };
+  const handleCloseModal = () => {
+    const modal = document.getElementById(
+      "question_builder",
+    ) as HTMLDialogElement;
+    modal.close();
+  };
+
   return (
     <div className="min-h-screen">
       <div className="px-6 flex justify-between breadcrumbs text-sm bg-white border-b border-gray-200 h-14">
@@ -193,7 +210,7 @@ const QuestionBuilder = () => {
           <div className="flex items-center justify-end">
             <button
               type="button"
-              onClick={() => console.log("Click")}
+              onClick={handelOpenModal}
               className="bg-[#FED400] shadow-sm rounded-lg p-3 cursor-pointer"
             >
               <div className="flex items-center gap-1">
@@ -209,6 +226,211 @@ const QuestionBuilder = () => {
             </button>
           </div>
         </div>
+
+        {/* Add Question Modal */}
+        <dialog id="question_builder" className="modal">
+          {/* Menggunakan standar max-w-2xl agar responsif */}
+          <div className="modal-box w-full max-w-2xl rounded-xl p-6 bg-white shadow-xl">
+            {/* --- HEADER --- */}
+            <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+              <div className="flex items-center gap-2">
+                <AddCircle size={24} color="#2563eb" variant="Bold" />
+                <h3 className="text-lg font-bold text-gray-800">
+                  Tambah Pertanyaan Inspeksi Checkpoint
+                </h3>
+              </div>
+              <button
+                className="p-2 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors focus:outline-none"
+                onClick={handleCloseModal}
+              >
+                <CloseCircle size={22} color="#6b7280" />
+              </button>
+            </div>
+
+            {/* --- BODY --- */}
+            <div className="mt-6 space-y-6">
+              {/* 1. Pertanyaan Inspeksi */}
+              <div>
+                <label
+                  htmlFor="question_text"
+                  className="block text-sm font-semibold text-gray-800 mb-1.5"
+                >
+                  1. Pertanyaan Inspeksi (Question Text)
+                </label>
+                <textarea
+                  id="question_text"
+                  name="question_text"
+                  className="w-full border border-gray-300 rounded-md bg-gray-50 p-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all h-24 resize-none"
+                  placeholder="Contoh: Apakah lampu indikator alarm panel dalam kondisi hijau/normal?"
+                />
+                <p className="text-[11px] text-gray-500 italic mt-1 flex items-start gap-1">
+                  <span className="text-red-500 font-bold">*</span>
+                  Gunakan instruksi yang lugas dan tidak ambigu bagi personel
+                  satpam di lapangan.
+                </p>
+              </div>
+
+              {/* 2. Tipe Respon */}
+              <div>
+                <p className="block text-sm font-semibold text-gray-800 mb-2">
+                  2. Tipe Respon (Question Type)
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <button className="flex flex-col p-3 border border-gray-200 bg-gray-50 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-left focus:ring-2 focus:ring-blue-500 focus:outline-none group">
+                    <div className="flex justify-between items-start w-full mb-1">
+                      <span className="font-bold text-sm uppercase text-gray-700 group-hover:text-blue-700">
+                        Yes / No
+                      </span>
+                      <TickCircle
+                        size={20}
+                        className="text-gray-400 group-hover:text-blue-600"
+                      />
+                    </div>
+                    <p className="text-[11px] text-gray-500 group-hover:text-blue-600/80 leading-snug">
+                      Pilihan Ya / Tidak cepat untuk kepatuhan SOP
+                    </p>
+                  </button>
+
+                  <button className="flex flex-col p-3 border border-gray-200 bg-gray-50 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-left focus:ring-2 focus:ring-blue-500 focus:outline-none group">
+                    <div className="flex justify-between items-start w-full mb-1">
+                      <span className="font-bold text-sm uppercase text-gray-700 group-hover:text-blue-700">
+                        Single Choice
+                      </span>
+                      <Radio
+                        size={20}
+                        className="text-gray-400 group-hover:text-blue-600"
+                      />
+                    </div>
+                    <p className="text-[11px] text-gray-500 group-hover:text-blue-600/80 leading-snug">
+                      Pilihan ganda dengan satu opsi jawaban
+                    </p>
+                  </button>
+
+                  <button className="flex flex-col p-3 border border-gray-200 bg-gray-50 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-left focus:ring-2 focus:ring-blue-500 focus:outline-none group">
+                    <div className="flex justify-between items-start w-full mb-1">
+                      <span className="font-bold text-sm uppercase text-gray-700 group-hover:text-blue-700">
+                        Text / Numeric
+                      </span>
+                      <Task
+                        size={20}
+                        className="text-gray-400 group-hover:text-blue-600"
+                      />
+                    </div>
+                    <p className="text-[11px] text-gray-500 group-hover:text-blue-600/80 leading-snug">
+                      Input catatan atau angka parameter meter
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              {/* 3 & 4. Pengaturan Bukti (Grid 2 Kolom) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white">
+                {/* 3. Persyaratan Foto */}
+                <div>
+                  <p className="block text-sm font-semibold text-gray-800 mb-3">
+                    3. Persyaratan Foto Bukti
+                  </p>
+                  <div className="space-y-2.5">
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="radio"
+                        name="photo_req"
+                        value="none"
+                        className="radio radio-primary radio-sm"
+                        defaultChecked
+                      />
+                      <span className="text-sm text-gray-600 group-hover:text-gray-900 font-medium">
+                        NONE (Tidak Perlu Foto)
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="radio"
+                        name="photo_req"
+                        value="required"
+                        className="radio radio-primary radio-sm"
+                      />
+                      <span className="text-sm text-gray-600 group-hover:text-gray-900 font-medium">
+                        REQUIRED (Foto Selalu Wajib)
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="radio"
+                        name="photo_req"
+                        value="conditional"
+                        className="radio radio-primary radio-sm"
+                      />
+                      <span className="text-sm text-gray-600 group-hover:text-gray-900 font-medium">
+                        CONDITIONAL (Jika ada temuan)
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* 4. Persyaratan Catatan (Diperbaiki dari duplikat sebelumnya) */}
+                <div>
+                  <p className="block text-sm font-semibold text-gray-800 mb-3">
+                    4. Persyaratan Catatan Tambahan
+                  </p>
+                  <div className="space-y-2.5">
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="radio"
+                        name="note_req"
+                        value="none"
+                        className="radio radio-primary radio-sm"
+                        defaultChecked
+                      />
+                      <span className="text-sm text-gray-600 group-hover:text-gray-900 font-medium">
+                        NONE (Opsional)
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="radio"
+                        name="note_req"
+                        value="required"
+                        className="radio radio-primary radio-sm"
+                      />
+                      <span className="text-sm text-gray-600 group-hover:text-gray-900 font-medium">
+                        REQUIRED (Wajib Diisi)
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="radio"
+                        name="note_req"
+                        value="conditional"
+                        className="radio radio-primary radio-sm"
+                      />
+                      <span className="text-sm text-gray-600 group-hover:text-gray-900 font-medium">
+                        CONDITIONAL (Jika gagal)
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* --- FOOTER --- */}
+            <div className="mt-8 pt-4 border-t border-gray-200 flex items-center justify-end gap-3">
+              <button
+                className="px-5 py-2 text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+                onClick={handleCloseModal}
+              >
+                Batal
+              </button>
+              <button
+                className="px-5 py-2 text-sm font-bold text-gray-900 bg-yellow-400 hover:bg-yellow-500 rounded-md transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                onClick={handleCloseModal}
+              >
+                Simpan
+              </button>
+            </div>
+          </div>
+        </dialog>
+        {/* Add Question Modal */}
 
         <div className="mt-5 grid grid-cols-2 gap-4">
           <div className="bg-gray-100 rounded-lg flex items-center justify-between px-3 py-2">
