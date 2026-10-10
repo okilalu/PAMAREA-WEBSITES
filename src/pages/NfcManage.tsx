@@ -1,12 +1,14 @@
 import {
   ArrowDown2,
   CardAdd,
+  CloseCircle,
   Edit,
   Eye,
   Location,
   LocationDiscover,
   More,
   Personalcard,
+  Radar,
   SearchNormal,
 } from "iconsax-react";
 import React, { useMemo, useState } from "react";
@@ -137,6 +139,15 @@ const NfcManage = () => {
     return [...new Set(dataNFC.map((q) => q.checkpoint))];
   }, []);
 
+  const openRegisterModal = () => {
+    const modal = document.getElementById("register_nfc") as HTMLDialogElement;
+    modal.showModal();
+  };
+  const closeRegisterModal = () => {
+    const modal = document.getElementById("register_nfc") as HTMLDialogElement;
+    modal.close();
+  };
+
   return (
     <div className="min-h-screen">
       <div className="px-6 flex justify-between breadcrumbs text-sm bg-white border-b border-gray-200 h-14">
@@ -180,7 +191,7 @@ const NfcManage = () => {
           <div className="flex items-center justify-end">
             <button
               type="button"
-              onClick={() => console.log("Click")}
+              onClick={openRegisterModal}
               className="bg-[#FED400] shadow-sm rounded-lg p-3 cursor-pointer"
             >
               <div className="flex items-center gap-1">
@@ -196,6 +207,163 @@ const NfcManage = () => {
             </button>
           </div>
         </div>
+
+        {/* Register NFC Modal */}
+        <dialog id="register_nfc" className="modal">
+          {/* Menggunakan w-[450px] sebagai pengganti w-112.5 agar valid di Tailwind */}
+          <div className="modal-box max-w-none w-112.5 h-screen max-h-screen rounded-none absolute right-0 top-0 m-0 p-0 flex flex-col bg-white">
+            {/* Header Section */}
+            <div className="flex items-start justify-between px-6 py-6 border-b border-gray-100">
+              <div className="flex items-center gap-4">
+                <div className="bg-yellow-300 rounded-lg p-3 shrink-0">
+                  <CardAdd size={24} color="black" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-gray-800">
+                    Registrasi Tag NFC Baru
+                  </h3>
+                  <p className="text-xs text-gray-500 tracking-wide mt-1 line-clamp-2">
+                    Inisialisasi perangkat fisik ke dalam database K3 & Keamanan
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={closeRegisterModal}
+                className="btn btn-sm btn-circle btn-ghost -mr-2"
+                aria-label="Tutup modal"
+              >
+                <CloseCircle size={22} color="gray" />
+              </button>
+            </div>
+
+            {/* Body / Form Section */}
+            <div className="p-6 grow overflow-y-auto">
+              <div className="form-control w-full">
+                <label htmlFor="uid_nfc" className="label px-0 pt-0">
+                  <span className="text-sm font-bold text-gray-700">
+                    UID Chip NFC (HEX Format){" "}
+                    <span className="text-red-500">*</span>
+                  </span>
+                </label>
+
+                {/* Input & Scan Button Group */}
+                <div className="flex gap-2 items-start">
+                  <div className="grow">
+                    <input
+                      id="uid_nfc"
+                      type="text"
+                      placeholder="Contoh: 04:7A:B2:9C:1F:60:80"
+                      className="input input-bordered w-full rounded-md text-sm border-gray-300 focus:border-blue-500"
+                    />
+                    <label className="label px-0 pb-0">
+                      <span className="text-xs text-gray-500">
+                        Pastikan format sesuai dengan UID asli.
+                      </span>
+                    </label>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="btn bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-600 rounded-md flex gap-2 px-4 shadow-none"
+                  >
+                    <Radar size={18} color="blue" />
+                    <span className="text-sm font-semibold">
+                      Scan Reader USB
+                    </span>
+                  </button>
+                </div>
+
+                <div className="bg-gray-100 p-3 rounded-sm mt-5">
+                  <div className="flex items-center justify-between gap-10">
+                    <div>
+                      <p className="text-xs font-semibold">
+                        Hubungkan ke Titik Checkpoint Patroli
+                      </p>
+                      <p className="text-xs text-gray-500 font-semibold">
+                        Nonaktifkan bila ingin disimpan sebagai tag cadangan
+                        gudang
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      className="toggle toggle-success toggle-sm"
+                    />
+                  </div>
+                  <div className="mt-2">
+                    <p className="uppercase text-xs text-gray-500 tracking-wide">
+                      Pilih Titik Checkpoint
+                    </p>
+                    <div className="dropdown dropdown-start mt-1 w-full">
+                      <div
+                        tabIndex={0}
+                        role="button"
+                        className="bg-white border border-gray-300 rounded-sm px-3 py-2 cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <LocationDiscover
+                              size={17}
+                              color="gray"
+                              className="shrink-0"
+                            />
+
+                            <div className="min-w-0">
+                              <p className="text-xs text-gray-600 font-semibold truncate">
+                                {"Pilih Checkpoint"}
+                              </p>
+                            </div>
+                          </div>
+                          <ArrowDown2
+                            size={17}
+                            color="gray"
+                            className="shrink-0"
+                          />
+                        </div>
+                      </div>
+
+                      <ul
+                        tabIndex={-1}
+                        className="dropdown-content menu w-full bg-gray-100 rounded-lg z-10 w-64 p-2 mt-1 shadow-md border border-gray-200"
+                      >
+                        {checkpointList.map((checkpoint) => (
+                          <li key={checkpoint}>
+                            <button
+                              type="button"
+                              // onClick={() => setSelectedCheckpoint(checkpoint)}
+                              className="text-xs text-gray-600 hover:bg-gray-200 rounded-md"
+                            >
+                              {checkpoint}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer / Action Buttons (Opsional: Sangat disarankan untuk form) */}
+            <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 mt-auto">
+              <button
+                type="button"
+                onClick={closeRegisterModal}
+                className="btn btn-ghost bg-white border border-gray-300 rounded-md hover:bg-gray-100"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                onClick={closeRegisterModal}
+                className="btn bg-yellow-400 hover:bg-yellow-500 text-black border-none rounded-md"
+              >
+                Simpan Tag
+              </button>
+            </div>
+          </div>
+        </dialog>
+        {/* Register NFC Modal */}
 
         <div className="mt-5 bg-white rounded-lg px-4 py-3">
           <div className="flex items-center">
