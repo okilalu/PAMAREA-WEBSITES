@@ -1,0 +1,86 @@
+[
+  {
+    "id": "CP-001",
+    "code": "PP-GMB-01",
+    "name": "Area Parkir Motor",
+    "site": "PLTU SAMBELIA",
+    "description": "Area parkir kendaraan roda dua",
+    "latitude": null,
+    "longitude": null,
+    "radiusMeters": 25,
+    "status": "Aktif",
+    "nfcStatus": "NFC-77A0-9941"
+  },
+  {
+    "id": "CP-002",
+    "code": "PP-GMB-02",
+    "name": "Area Parkir Mobil",
+    "site": "PLTU SAMBELIA",
+    "description": "Area parkir kendaraan roda empat",
+    "latitude": null,
+    "longitude": null,
+    "radiusMeters": 30,
+    "status": "Aktif",
+    "nfcStatus": "NFC-82B1-4527"
+  },
+  {
+    "id": "CP-003",
+    "code": "PP-GMB-03",
+    "name": "Lantai 1 Gedung Admin",
+    "site": "PLTU SAMBELIA",
+    "description": "Area lantai satu gedung administrasi",
+    "latitude": null,
+    "longitude": null,
+    "radiusMeters": 20,
+    "status": "Aktif",
+    "nfcStatus": null
+  },
+  {
+    "id": "CP-004",
+    "code": "PP-GMB-04",
+    "name": "Lantai 2 Gedung Admin",
+    "site": "PLTU SAMBELIA",
+    "description": "Area lantai dua gedung administrasi",
+    "latitude": null,
+    "longitude": null,
+    "radiusMeters": 15,
+    "status": "Aktif",
+    "nfcStatus": "NFC-91D3-2268"
+  },
+  {
+    "id": "CP-005",
+    "code": "PP-GMB-05",
+    "name": "Area Belakang Masjid",
+    "site": "PLTU SAMBELIA",
+    "description": "Area belakang masjid",
+    "latitude": null,
+    "longitude": null,
+    "radiusMeters": 35,
+    "status": "Aktif",
+    "nfcStatus": null
+  },
+  {
+    "id": "CP-006",
+    "code": "PP-GMB-06",
+    "name": "Area Parkir Belakang",
+    "site": "PLTU SAMBELIA",
+    "description": "Area parkir bagian belakang",
+    "latitude": null,
+    "longitude": null,
+    "radiusMeters": 40,
+    "status": "Aktif",
+    "nfcStatus": null
+  },
+  {
+    "id": "CP-007",
+    "code": "PP-GMB-07",
+    "name": "Area Gudang",
+    "site": "PLTU SAMBELIA",
+    "description": "Area gudang",
+    "latitude": null,
+    "longitude": null,
+    "radiusMeters": 40,
+    "status": "Aktif",
+    "nfcStatus": null
+  }
+]
