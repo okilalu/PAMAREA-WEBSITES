@@ -1,12 +1,47 @@
 import {
   ArrowDown2,
   CloseCircle,
+  Edit,
+  Eye,
   People,
   SearchNormal,
   SearchStatus,
+  Trash,
   UserAdd,
 } from "iconsax-react";
 import React, { useMemo, useState } from "react";
+
+type User = {
+  nama: string;
+  Nip: string;
+  section: string;
+  unit: string | null;
+  role: string;
+  device: string;
+  status: "Aktif" | "Nonaktif";
+  phone?: string;
+  email?: string;
+};
+
+type RegisterForm = {
+  Nip: string;
+  nama: string;
+  phone: string;
+  email: string;
+  password: string;
+  role: string;
+  unit: string;
+};
+
+const initialRegisterForm: RegisterForm = {
+  Nip: "",
+  nama: "",
+  phone: "",
+  email: "",
+  password: "",
+  role: "",
+  unit: "",
+};
 
 const UserManage = () => {
   const listUnit = [
@@ -18,101 +53,141 @@ const UserManage = () => {
     "Area Parkir Kendaraan",
   ];
 
-  const listStatus = ["Aktif", "Nonaktif"];
-  const userTable = [
+  // const listStatus = ["Aktif", "Nonaktif"];
+  const userTable: User[] = [
     {
-      nama: "Dimas",
       Nip: "520210210210120",
+      nama: "Dimas",
+      phone: "081234512341",
+      email: "test@gmail.com",
+      role: "Admin Planner",
+      unit: null,
       section: "SEC-001",
-      unit: "Area Trafo Daya 1",
-      role: "Admin",
       device: "Samsung",
       status: "Aktif",
     },
     {
-      nama: "Andi",
       Nip: "520210210210121",
+      nama: "Andi",
+      phone: "081234512341",
+      email: "test@gmail.com",
+      role: "Anggota Security",
+      unit: "Area Trafo Daya 1",
       section: "SEC-002",
-      unit: null,
-      role: "Security",
       device: "Samsung",
       status: "Aktif",
     },
     {
-      nama: "Rizky",
       Nip: "520210210210122",
-      section: "SEC-003",
+      nama: "Rizky",
+      phone: "081234512341",
+      email: "test@gmail.com",
+      role: "Anggota Security",
       unit: "Area Trafo Daya 2",
-      role: "Security",
+      section: "SEC-003",
       device: "Xiaomi",
-      status: "Aktif",
-    },
-    {
-      nama: "Fajar",
-      Nip: "520210210210123",
-      section: "SEC-004",
-      unit: "Ruang Panel Utama",
-      role: "Security",
-      device: "Oppo",
-      status: "Nonaktif",
-    },
-    {
-      nama: "Bayu",
-      Nip: "520210210210124",
-      section: "SEC-005",
-      unit: "Gudang Material Utama",
-      role: "Security",
-      device: "Samsung",
-      status: "Aktif",
-    },
-    {
-      nama: "Ardi",
-      Nip: "520210210210125",
-      section: "SEC-006",
-      unit: "Gerbang Utama",
-      role: "Security",
-      device: "Vivo",
-      status: "Aktif",
-    },
-    {
-      nama: "Rian",
-      Nip: "520210210210126",
-      section: "SEC-007",
-      unit: null,
-      role: "Security",
-      device: "Samsung",
-      status: "Aktif",
-    },
-    {
-      nama: "Ilham",
-      Nip: "520210210210127",
-      section: "SEC-008",
-      unit: "Area Parkir Kendaraan",
-      role: "Security",
-      device: "Xiaomi",
-      status: "Aktif",
-    },
-    {
-      nama: "Agus",
-      Nip: "520210210210128",
-      section: "SEC-009",
-      unit: null,
-      role: "Security",
-      device: "Oppo",
-      status: "Aktif",
-    },
-    {
-      nama: "Rendi",
-      Nip: "520210210210129",
-      section: "SEC-010",
-      unit: "Ruang Panel Utama",
-      role: "Security",
-      device: "Samsung",
       status: "Aktif",
     },
   ];
+  // const userTable: User[] = [
+  //   {
+  //     nama: "Dimas",
+  //     Nip: "520210210210120",
+  //     section: "SEC-001",
+  //     unit: "Area Trafo Daya 1",
+  //     role: "Admin",
+  //     device: "Samsung",
+  //     status: "Aktif",
+  //   },
+  //   {
+  //     nama: "Andi",
+  //     Nip: "520210210210121",
+  //     section: "SEC-002",
+  //     unit: null,
+  //     role: "Security",
+  //     device: "Samsung",
+  //     status: "Aktif",
+  //   },
+  //   {
+  //     nama: "Rizky",
+  //     Nip: "520210210210122",
+  //     section: "SEC-003",
+  //     unit: "Area Trafo Daya 2",
+  //     role: "Security",
+  //     device: "Xiaomi",
+  //     status: "Aktif",
+  //   },
+  //   {
+  //     nama: "Fajar",
+  //     Nip: "520210210210123",
+  //     section: "SEC-004",
+  //     unit: "Ruang Panel Utama",
+  //     role: "Security",
+  //     device: "Oppo",
+  //     status: "Nonaktif",
+  //   },
+  //   {
+  //     nama: "Bayu",
+  //     Nip: "520210210210124",
+  //     section: "SEC-005",
+  //     unit: "Gudang Material Utama",
+  //     role: "Security",
+  //     device: "Samsung",
+  //     status: "Aktif",
+  //   },
+  //   {
+  //     nama: "Ardi",
+  //     Nip: "520210210210125",
+  //     section: "SEC-006",
+  //     unit: "Gerbang Utama",
+  //     role: "Security",
+  //     device: "Vivo",
+  //     status: "Aktif",
+  //   },
+  //   {
+  //     nama: "Rian",
+  //     Nip: "520210210210126",
+  //     section: "SEC-007",
+  //     unit: null,
+  //     role: "Security",
+  //     device: "Samsung",
+  //     status: "Aktif",
+  //   },
+  //   {
+  //     nama: "Ilham",
+  //     Nip: "520210210210127",
+  //     section: "SEC-008",
+  //     unit: "Area Parkir Kendaraan",
+  //     role: "Security",
+  //     device: "Xiaomi",
+  //     status: "Aktif",
+  //   },
+  //   {
+  //     nama: "Agus",
+  //     Nip: "520210210210128",
+  //     section: "SEC-009",
+  //     unit: null,
+  //     role: "Security",
+  //     device: "Oppo",
+  //     status: "Aktif",
+  //   },
+  //   {
+  //     nama: "Rendi",
+  //     Nip: "520210210210129",
+  //     section: "SEC-010",
+  //     unit: "Ruang Panel Utama",
+  //     role: "Security",
+  //     device: "Samsung",
+  //     status: "Aktif",
+  //   },
+  // ];
 
-  const [users, setUsers] = useState(userTable);
+  const [users, setUsers] = useState<User[]>(userTable);
+  const [registerForm, setRegisterForm] =
+    useState<RegisterForm>(initialRegisterForm);
+  const [registerError, setRegisterError] = useState("");
+  const [registerSuccess, setRegisterSuccess] = useState("");
+
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
@@ -131,7 +206,6 @@ const UserManage = () => {
         item.device.toLowerCase().includes(keyword);
 
       const matchesRole = selectedRole === "" || item.role === selectedRole;
-
       const matchUnit = selectedUnit === "" || item.unit === selectedUnit;
       const matchStatus =
         selectedStatus === "" || item.status === selectedStatus;
@@ -154,14 +228,24 @@ const UserManage = () => {
       role: "",
     },
     {
-      name: "Admin PAMAREA",
-      value: users.map((item) => item.role === "Admin").length,
-      role: "Admin",
+      name: "Chief Security",
+      value: users.filter((item) => item.role === "Chief Security").length,
+      role: "Chief Security",
     },
     {
-      name: "Security / Satpam",
-      value: users.map((item) => item.role === "Security").length,
-      role: "Security",
+      name: "Admin Planner",
+      value: users.filter((item) => item.role === "Admin Planner").length,
+      role: "Admin Planner",
+    },
+    {
+      name: "Danru Security",
+      value: users.filter((item) => item.role === "Danru Security").length,
+      role: "Danru Security",
+    },
+    {
+      name: "Anggota Security",
+      value: users.filter((item) => item.role === "Anggota Security").length,
+      role: "Anggota Security",
     },
   ];
 
@@ -190,6 +274,121 @@ const UserManage = () => {
       "register_satpam_modal",
     ) as HTMLDialogElement;
     modal.close();
+  };
+
+  const handleRegisterChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target;
+
+    setRegisterForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    setRegisterError("");
+    setRegisterSuccess("");
+  };
+
+  const handleRegisterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const Nip = registerForm.Nip.trim();
+    const nama = registerForm.nama.trim();
+    const phone = registerForm.phone.trim();
+    const email = registerForm.email.trim().toLowerCase();
+    const password = registerForm.password;
+    const role = registerForm.role;
+    const unit = registerForm.unit;
+
+    // Validasi input
+    if (!Nip || !nama || !phone || !email || !password || !role) {
+      setRegisterError("Semua field wajib diisi.");
+      return;
+    }
+
+    if (!/^\d+$/.test(Nip)) {
+      setRegisterError("Satpam ID hanya boleh berisi angka.");
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setRegisterError("Format email tidak valid.");
+      return;
+    }
+
+    if (!/^\+?[\d\s()-]{8,20}$/.test(phone)) {
+      setRegisterError("Format nomor telepon tidak valid.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setRegisterError("Password minimal 8 karakter.");
+      return;
+    }
+
+    // Validasi duplikasi Satpam ID dan email
+    const duplicateNip = users.some(
+      (user) => user.Nip.toLowerCase() === Nip.toLowerCase(),
+    );
+
+    if (duplicateNip) {
+      setRegisterError("Satpam ID sudah terdaftar.");
+      return;
+    }
+
+    const duplicateEmail = users.some(
+      (user) => user.email?.toLowerCase() === email,
+    );
+
+    if (duplicateEmail) {
+      setRegisterError("Email sudah terdaftar.");
+      return;
+    }
+
+    // Buat data pengguna baru
+    const newUser: User = {
+      nama,
+      Nip,
+      section: `SEC-${String(users.length + 1).padStart(3, "0")}`,
+      unit: unit || null,
+      role,
+      device: "-", // Belum ada device terikat saat awal daftar
+      status: "Aktif",
+      phone,
+      email,
+    };
+
+    // --- SIMULASI API POST / UPDATE JSON ---
+    console.log("Menambahkan data baru...");
+    console.log(
+      "Payload yang akan dikirim ke DB:",
+      JSON.stringify(newUser, null, 2),
+    );
+
+    // Tambahkan pengguna ke tabel (Simulasi respons sukses dari DB)
+    setUsers((prevUsers) => {
+      const updatedData = [newUser, ...prevUsers];
+      console.log(
+        "Full JSON State Baru:",
+        JSON.stringify(updatedData, null, 2),
+      );
+      return updatedData;
+    });
+    // ---------------------------------------
+
+    // Reset halaman dan filter agar pengguna baru terlihat di baris pertama
+    setCurrentPage(1);
+    setSearch("");
+    setSelectedRole("");
+    setSelectedUnit("");
+    setSelectedStatus("");
+
+    setRegisterSuccess(`${nama} berhasil didaftarkan ke sistem.`);
+    setRegisterForm(initialRegisterForm);
+    setRegisterError("");
+
+    closeRegisterModal();
   };
 
   return (
@@ -221,7 +420,7 @@ const UserManage = () => {
         <div className="my-5 grid grid-cols-2 gap-4">
           <div>
             <div className="flex items-center gap-1">
-              <div className="bg-[#00529C]  px-1 py-3 h-[1px] rounded-xs" />
+              <div className="bg-[#00529C]  px-1 py-3 h-[px] rounded-xs" />
               <h1 className="font-bold text-2xl">
                 Management User & Security Patrol
               </h1>
@@ -294,7 +493,11 @@ const UserManage = () => {
 
                   <button
                     type="button"
-                    onClick={closeRegisterModal}
+                    onClick={() => {
+                      setRegisterForm(initialRegisterForm);
+                      setRegisterError("");
+                      closeRegisterModal();
+                    }}
                     className="btn btn-sm btn-circle btn-ghost"
                   >
                     <CloseCircle size={22} color="gray" />
@@ -302,7 +505,10 @@ const UserManage = () => {
                 </div>
 
                 {/* Form */}
-                <form className="p-6 overflow-y-auto h-[calc(100vh-90px)]">
+                <form
+                  className="p-6 overflow-y-auto h-[calc(100vh-90px)]"
+                  onSubmit={handleRegisterSubmit}
+                >
                   <div className="space-y-4">
                     {/* Satpam ID */}
                     <div>
@@ -312,8 +518,12 @@ const UserManage = () => {
 
                       <input
                         type="text"
+                        name="Nip"
                         placeholder="Enter satpam ID"
-                        className="input input-bordered w-full mt-1 bg-gray-50"
+                        className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        value={registerForm.Nip}
+                        onChange={handleRegisterChange}
+                        required
                       />
                     </div>
 
@@ -325,13 +535,17 @@ const UserManage = () => {
 
                       <input
                         type="text"
+                        name="nama"
                         placeholder="Enter full name"
-                        className="input input-bordered w-full mt-1 bg-gray-50"
+                        className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        value={registerForm.nama}
+                        onChange={handleRegisterChange}
+                        required
                       />
                     </div>
 
                     {/* Station */}
-                    <div>
+                    {/* <div>
                       <label className="text-sm font-medium text-gray-700">
                         Station
                       </label>
@@ -344,7 +558,7 @@ const UserManage = () => {
                           <option>{item}</option>
                         ))}
                       </select>
-                    </div>
+                    </div> */}
 
                     {/* Phone */}
                     <div>
@@ -354,8 +568,12 @@ const UserManage = () => {
 
                       <input
                         type="tel"
+                        name="phone"
                         placeholder="Enter phone number"
-                        className="input input-bordered w-full mt-1 bg-gray-50"
+                        className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm"
+                        value={registerForm.phone}
+                        onChange={handleRegisterChange}
+                        required
                       />
                     </div>
 
@@ -367,8 +585,12 @@ const UserManage = () => {
 
                       <input
                         type="email"
+                        name="email"
                         placeholder="Enter email address"
-                        className="input input-bordered w-full mt-1 bg-gray-50"
+                        className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm"
+                        value={registerForm.email}
+                        onChange={handleRegisterChange}
+                        required
                       />
                     </div>
 
@@ -380,8 +602,13 @@ const UserManage = () => {
 
                       <input
                         type="password"
+                        name="password"
                         placeholder="Enter password"
-                        className="input input-bordered w-full mt-1 bg-gray-50"
+                        className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm"
+                        value={registerForm.password}
+                        onChange={handleRegisterChange}
+                        minLength={8}
+                        required
                       />
                     </div>
 
@@ -391,21 +618,39 @@ const UserManage = () => {
                         Role
                       </label>
 
-                      <select className="select select-bordered w-full mt-1 bg-gray-50">
-                        <option disabled selected>
+                      <select
+                        className="select select-bordered w-full mt-1 bg-white border-gray-300 text-sm"
+                        name="role"
+                        value={registerForm.role}
+                        onChange={handleRegisterChange}
+                        required
+                      >
+                        <option value="" disabled>
                           Select role
                         </option>
-                        <option>Satpam</option>
-                        <option>Supervisor</option>
-                        <option>Admin</option>
+                        <option value="Chief Security">Chief Security</option>
+                        <option value="Admin Planner">Admin Planner</option>
+                        <option value="Danru Security">Danru Security</option>
+                        <option value="Anggota Security">
+                          Anggota Security
+                        </option>
                       </select>
                     </div>
 
                     {/* Action */}
+                    {registerError && (
+                      <div className="alert alert-error mt-4 text-sm p-3 rounded-lg">
+                        <span>{registerError}</span>
+                      </div>
+                    )}
                     <div className="pt-4 flex gap-3">
                       <button
                         type="button"
-                        onClick={closeRegisterModal}
+                        onClick={() => {
+                          setRegisterForm(initialRegisterForm);
+                          setRegisterError("");
+                          closeRegisterModal();
+                        }}
                         className="btn flex-1 bg-gray-100 border-none text-gray-700"
                       >
                         Cancel
@@ -424,7 +669,15 @@ const UserManage = () => {
 
               {/* Click outside to close */}
               <form method="dialog" className="modal-backdrop">
-                <button>close</button>
+                <button
+                  onClick={() => {
+                    setRegisterForm(initialRegisterForm);
+                    setRegisterError("");
+                    closeRegisterModal();
+                  }}
+                >
+                  close
+                </button>
               </form>
             </dialog>
             {/* Form & Modal */}
@@ -506,14 +759,14 @@ const UserManage = () => {
             </ul>
           </div>
 
-          <div className="dropdown dropdown-start bg-gray-100 rounded-lg">
+          {/* <div className="dropdown dropdown-start bg-gray-100 rounded-lg">
             <div
               tabIndex={0}
               role="button"
               className="btn bg-gray-100 flex items-center"
             >
               <span className="text-xs text-gray-700">
-                {selectedUnit || "Semua"}
+                {selectedStatus || "Semua"}
               </span>
 
               <ArrowDown2 size={17} color="gray" />
@@ -544,7 +797,7 @@ const UserManage = () => {
                 </li>
               ))}
             </ul>
-          </div>
+          </div> */}
         </div>
         {/* Input */}
 
@@ -626,6 +879,19 @@ const UserManage = () => {
         </div> */}
         {/* Card */}
 
+        {registerSuccess && (
+          <div className="alert alert-success mt-4 bg-green-50 text-green-800 border border-green-200 p-3 rounded-lg flex justify-between">
+            <span className="text-sm font-medium">{registerSuccess}</span>
+            <button
+              type="button"
+              onClick={() => setRegisterSuccess("")}
+              className="btn btn-sm btn-ghost hover:bg-green-100"
+            >
+              <CloseCircle size={18} />
+            </button>
+          </div>
+        )}
+
         {/* Table */}
         <div className="mt-5 rounded-lg bg-white p-4 shadow-sm">
           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
@@ -634,7 +900,7 @@ const UserManage = () => {
                 <thead className="bg-gray-100">
                   <tr className="border-b border-gray-200">
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
-                      Personel Keamanan
+                      Personel Pamarea
                     </th>
 
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
@@ -726,9 +992,17 @@ const UserManage = () => {
 
                           {/* ACTION */}
                           <td className="px-4 py-3 text-center">
-                            <button className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200">
-                              Detail
-                            </button>
+                            <div className="flex items-center justify-center gap-4">
+                              <button className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200">
+                                <Edit size={17} color="gray" />
+                              </button>
+                              <button className="rounded-md bg-red-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-red-200">
+                                <Trash size={17} color="red" />
+                              </button>
+                              <button className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200">
+                                <Eye size={17} color="gray" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -760,6 +1034,9 @@ const UserManage = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Modal Detail User */}
+            {/* Modal Detail User */}
 
             {/* PAGINATION */}
             <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
