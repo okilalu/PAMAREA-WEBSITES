@@ -10,181 +10,26 @@ import {
   UserAdd,
 } from "iconsax-react";
 import React, { useMemo, useState } from "react";
-
-type User = {
-  nama: string;
-  Nip: string;
-  section: string;
-  unit: string | null;
-  role: string;
-  device: string;
-  status: "Aktif" | "Nonaktif";
-  phone?: string;
-  email?: string;
-};
-
-type RegisterForm = {
-  Nip: string;
-  nama: string;
-  phone: string;
-  email: string;
-  password: string;
-  role: string;
-  unit: string;
-};
-
-const initialRegisterForm: RegisterForm = {
-  Nip: "",
-  nama: "",
-  phone: "",
-  email: "",
-  password: "",
-  role: "",
-  unit: "",
-};
+import { useCreateUser, useUsers } from "../hooks/users/useUsers";
+import { useRoles } from "../hooks/role/useRole";
+import UserPagination from "../components/manageUser/UserPagination";
 
 const UserManage = () => {
-  const listUnit = [
-    "Area Trafo Daya 1",
-    "Area Trafo Daya 2",
-    "Gudang Material Utama",
-    "Ruang Panel Utama",
-    "Gerbang Utama",
-    "Area Parkir Kendaraan",
-  ];
+  const { data: listUsers } = useUsers();
+  const { mutateAsync: register, isPending: isRegistering } = useCreateUser();
+  const {
+    data: rolesResponse,
+    isPending: isRolesPending,
+    isError: isRolesError,
+  } = useRoles();
+  const [employeeNumber, setEmployeeNumber] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [roleId, setRoleId] = useState("");
 
-  // const listStatus = ["Aktif", "Nonaktif"];
-  const userTable: User[] = [
-    {
-      Nip: "520210210210120",
-      nama: "Dimas",
-      phone: "081234512341",
-      email: "test@gmail.com",
-      role: "Admin Planner",
-      unit: null,
-      section: "SEC-001",
-      device: "Samsung",
-      status: "Aktif",
-    },
-    {
-      Nip: "520210210210121",
-      nama: "Andi",
-      phone: "081234512341",
-      email: "test@gmail.com",
-      role: "Anggota Security",
-      unit: "Area Trafo Daya 1",
-      section: "SEC-002",
-      device: "Samsung",
-      status: "Aktif",
-    },
-    {
-      Nip: "520210210210122",
-      nama: "Rizky",
-      phone: "081234512341",
-      email: "test@gmail.com",
-      role: "Anggota Security",
-      unit: "Area Trafo Daya 2",
-      section: "SEC-003",
-      device: "Xiaomi",
-      status: "Aktif",
-    },
-  ];
-  // const userTable: User[] = [
-  //   {
-  //     nama: "Dimas",
-  //     Nip: "520210210210120",
-  //     section: "SEC-001",
-  //     unit: "Area Trafo Daya 1",
-  //     role: "Admin",
-  //     device: "Samsung",
-  //     status: "Aktif",
-  //   },
-  //   {
-  //     nama: "Andi",
-  //     Nip: "520210210210121",
-  //     section: "SEC-002",
-  //     unit: null,
-  //     role: "Security",
-  //     device: "Samsung",
-  //     status: "Aktif",
-  //   },
-  //   {
-  //     nama: "Rizky",
-  //     Nip: "520210210210122",
-  //     section: "SEC-003",
-  //     unit: "Area Trafo Daya 2",
-  //     role: "Security",
-  //     device: "Xiaomi",
-  //     status: "Aktif",
-  //   },
-  //   {
-  //     nama: "Fajar",
-  //     Nip: "520210210210123",
-  //     section: "SEC-004",
-  //     unit: "Ruang Panel Utama",
-  //     role: "Security",
-  //     device: "Oppo",
-  //     status: "Nonaktif",
-  //   },
-  //   {
-  //     nama: "Bayu",
-  //     Nip: "520210210210124",
-  //     section: "SEC-005",
-  //     unit: "Gudang Material Utama",
-  //     role: "Security",
-  //     device: "Samsung",
-  //     status: "Aktif",
-  //   },
-  //   {
-  //     nama: "Ardi",
-  //     Nip: "520210210210125",
-  //     section: "SEC-006",
-  //     unit: "Gerbang Utama",
-  //     role: "Security",
-  //     device: "Vivo",
-  //     status: "Aktif",
-  //   },
-  //   {
-  //     nama: "Rian",
-  //     Nip: "520210210210126",
-  //     section: "SEC-007",
-  //     unit: null,
-  //     role: "Security",
-  //     device: "Samsung",
-  //     status: "Aktif",
-  //   },
-  //   {
-  //     nama: "Ilham",
-  //     Nip: "520210210210127",
-  //     section: "SEC-008",
-  //     unit: "Area Parkir Kendaraan",
-  //     role: "Security",
-  //     device: "Xiaomi",
-  //     status: "Aktif",
-  //   },
-  //   {
-  //     nama: "Agus",
-  //     Nip: "520210210210128",
-  //     section: "SEC-009",
-  //     unit: null,
-  //     role: "Security",
-  //     device: "Oppo",
-  //     status: "Aktif",
-  //   },
-  //   {
-  //     nama: "Rendi",
-  //     Nip: "520210210210129",
-  //     section: "SEC-010",
-  //     unit: "Ruang Panel Utama",
-  //     role: "Security",
-  //     device: "Samsung",
-  //     status: "Aktif",
-  //   },
-  // ];
-
-  const [users, setUsers] = useState<User[]>(userTable);
-  const [registerForm, setRegisterForm] =
-    useState<RegisterForm>(initialRegisterForm);
   const [registerError, setRegisterError] = useState("");
   const [registerSuccess, setRegisterSuccess] = useState("");
 
@@ -192,34 +37,56 @@ const UserManage = () => {
   const [search, setSearch] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
   const [selectedUnit, setSelectedUnit] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("");
+  // const [selectedStatus, setSelectedStatus] = useState("");
+
+  const users = listUsers?.data ?? [];
+  const roles = rolesResponse?.data ?? [];
+
+  console.log("USERS", JSON.stringify(users, null, 2));
+
+  const listUnit = useMemo(() => {
+    return Array.from(
+      new Set(
+        users
+          .map((user) => user.site?.name)
+          .filter((name): name is string => Boolean(name)),
+      ),
+    );
+  }, [users]);
 
   const filteredUser = useMemo(() => {
     const keyword = search.toLowerCase().trim();
 
     return users.filter((item) => {
       const matchesSearch =
-        item.nama.toLowerCase().includes(keyword) ||
-        item.Nip.toLowerCase().includes(keyword) ||
-        item.section.toLowerCase().includes(keyword) ||
-        item.unit?.toLowerCase().includes(keyword) ||
-        item.device.toLowerCase().includes(keyword);
+        item.fullName.toLowerCase().includes(keyword) ||
+        (item.employeeNumber ?? "").toLowerCase().includes(keyword) ||
+        (item.username ?? "").toLowerCase().includes(keyword) ||
+        (item.role?.name ?? "").toLowerCase().includes(keyword) ||
+        (item.site?.name ?? "").toLowerCase().includes(keyword) ||
+        (item.phone ?? "").toLowerCase().includes(keyword);
 
-      const matchesRole = selectedRole === "" || item.role === selectedRole;
-      const matchUnit = selectedUnit === "" || item.unit === selectedUnit;
-      const matchStatus =
-        selectedStatus === "" || item.status === selectedStatus;
+      const matchesRole =
+        selectedRole === "" || item.role?.name === selectedRole;
 
-      return matchesSearch && matchesRole && matchUnit && matchStatus;
+      const matchUnit = selectedUnit === "" || item.site?.name === selectedUnit;
+
+      // const matchStatus =
+      //   selectedStatus === "" || item.status === selectedStatus;
+
+      return matchesSearch && matchesRole && matchUnit;
     });
-  }, [users, search, selectedRole, selectedUnit, selectedStatus]);
+  }, [users, search, selectedRole, selectedUnit]);
 
   const itemPerPage = 6;
 
-  const totalPages = Math.ceil(filteredUser.length / itemPerPage);
+  const totalPages = Math.ceil(filteredUser?.length / itemPerPage);
   const startIndex = (currentPage - 1) * itemPerPage;
 
-  const currentUsers = filteredUser.slice(startIndex, startIndex + itemPerPage);
+  const currentUsers = filteredUser?.slice(
+    startIndex,
+    startIndex + itemPerPage,
+  );
 
   const filterRole = [
     {
@@ -228,39 +95,16 @@ const UserManage = () => {
       role: "",
     },
     {
-      name: "Chief Security",
-      value: users.filter((item) => item.role === "Chief Security").length,
-      role: "Chief Security",
+      name: "Admin",
+      value: users.filter((user) => user.role?.name === "ADMIN").length,
+      role: "ADMIN",
     },
     {
-      name: "Admin Planner",
-      value: users.filter((item) => item.role === "Admin Planner").length,
-      role: "Admin Planner",
-    },
-    {
-      name: "Danru Security",
-      value: users.filter((item) => item.role === "Danru Security").length,
-      role: "Danru Security",
-    },
-    {
-      name: "Anggota Security",
-      value: users.filter((item) => item.role === "Anggota Security").length,
-      role: "Anggota Security",
+      name: "Security",
+      value: users.filter((user) => user.role?.name === "SECURITY").length,
+      role: "SECURITY",
     },
   ];
-
-  const handleStatusChange = (Nip: string) => {
-    setUsers((prevUsers) =>
-      prevUsers.map((user) =>
-        user.Nip === Nip
-          ? {
-              ...user,
-              status: user.status === "Aktif" ? "Nonaktif" : "Aktif",
-            }
-          : user,
-      ),
-    );
-  };
 
   const openRegisterModal = () => {
     const modal = document.getElementById(
@@ -276,48 +120,53 @@ const UserManage = () => {
     modal.close();
   };
 
-  const handleRegisterChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = e.target;
-
-    setRegisterForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
+  const resetRegisterForm = () => {
+    setEmployeeNumber("");
+    setFullName("");
+    setUsername("");
+    setEmail("");
+    setPhone("");
+    setPassword("");
+    setRoleId("");
     setRegisterError("");
-    setRegisterSuccess("");
   };
 
-  const handleRegisterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleRegisterUser = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+    setRegisterError("");
+    setRegisterSuccess("");
 
-    const Nip = registerForm.Nip.trim();
-    const nama = registerForm.nama.trim();
-    const phone = registerForm.phone.trim();
-    const email = registerForm.email.trim().toLowerCase();
-    const password = registerForm.password;
-    const role = registerForm.role;
-    const unit = registerForm.unit;
+    const normalizedEmployeeNumber = employeeNumber.trim();
+    const normalizedFullName = fullName.trim();
+    const normalizedUsername = username.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPhone = phone.trim();
 
-    // Validasi input
-    if (!Nip || !nama || !phone || !email || !password || !role) {
-      setRegisterError("Semua field wajib diisi.");
+    if (
+      !normalizedEmployeeNumber ||
+      !normalizedFullName ||
+      !normalizedUsername ||
+      !normalizedEmail ||
+      !normalizedPhone ||
+      !password ||
+      !roleId
+    ) {
+      setRegisterError("Lengkapi semua field yang wajib diisi.");
       return;
     }
-
-    if (!/^\d+$/.test(Nip)) {
+    if (!/^\d+$/.test(normalizedEmployeeNumber)) {
       setRegisterError("Satpam ID hanya boleh berisi angka.");
       return;
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
       setRegisterError("Format email tidak valid.");
       return;
     }
 
-    if (!/^\+?[\d\s()-]{8,20}$/.test(phone)) {
+    if (!/^\+?[\d\s()-]{8,20}$/.test(normalizedPhone)) {
       setRegisterError("Format nomor telepon tidak valid.");
       return;
     }
@@ -328,17 +177,19 @@ const UserManage = () => {
     }
 
     // Validasi duplikasi Satpam ID dan email
-    const duplicateNip = users.some(
-      (user) => user.Nip.toLowerCase() === Nip.toLowerCase(),
+    const duplicateID = users.some(
+      (user) =>
+        user.employeeNumber?.toLowerCase() ===
+        normalizedEmployeeNumber.toLowerCase(),
     );
 
-    if (duplicateNip) {
+    if (duplicateID) {
       setRegisterError("Satpam ID sudah terdaftar.");
       return;
     }
 
     const duplicateEmail = users.some(
-      (user) => user.email?.toLowerCase() === email,
+      (user) => user.email?.toLowerCase() === normalizedEmail,
     );
 
     if (duplicateEmail) {
@@ -346,49 +197,31 @@ const UserManage = () => {
       return;
     }
 
-    // Buat data pengguna baru
-    const newUser: User = {
-      nama,
-      Nip,
-      section: `SEC-${String(users.length + 1).padStart(3, "0")}`,
-      unit: unit || null,
-      role,
-      device: "-", // Belum ada device terikat saat awal daftar
-      status: "Aktif",
-      phone,
-      email,
+    const selectedRoleData = roles.find((role) => role.id === roleId);
+    if (!selectedRoleData) {
+      setRegisterError("Role belum ditemukan. Periksa data role dari backend.");
+      return;
+    }
+    const payload = {
+      employeeNumber: normalizedEmployeeNumber,
+      fullName: normalizedFullName,
+      username: normalizedUsername,
+      email: normalizedEmail,
+      phone: normalizedPhone,
+      password,
+      roleId: selectedRoleData.id,
     };
+    console.log("PAYLOAD", payload);
+    try {
+      await register(payload);
 
-    // --- SIMULASI API POST / UPDATE JSON ---
-    console.log("Menambahkan data baru...");
-    console.log(
-      "Payload yang akan dikirim ke DB:",
-      JSON.stringify(newUser, null, 2),
-    );
-
-    // Tambahkan pengguna ke tabel (Simulasi respons sukses dari DB)
-    setUsers((prevUsers) => {
-      const updatedData = [newUser, ...prevUsers];
-      console.log(
-        "Full JSON State Baru:",
-        JSON.stringify(updatedData, null, 2),
-      );
-      return updatedData;
-    });
-    // ---------------------------------------
-
-    // Reset halaman dan filter agar pengguna baru terlihat di baris pertama
-    setCurrentPage(1);
-    setSearch("");
-    setSelectedRole("");
-    setSelectedUnit("");
-    setSelectedStatus("");
-
-    setRegisterSuccess(`${nama} berhasil didaftarkan ke sistem.`);
-    setRegisterForm(initialRegisterForm);
-    setRegisterError("");
-
-    closeRegisterModal();
+      setRegisterSuccess("Pengguna berhasil didaftarkan.");
+      resetRegisterForm();
+      closeRegisterModal();
+    } catch (error) {
+      alert("Error saat register user");
+      console.log(error);
+    }
   };
 
   return (
@@ -439,7 +272,7 @@ const UserManage = () => {
                 </div>
                 <div className="ml-2">
                   <p className="text-gray-600 text-sm">
-                    Total Personel: {users.length}
+                    Total Personel: {filteredUser?.length}
                   </p>
                 </div>
               </div>
@@ -494,7 +327,7 @@ const UserManage = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      setRegisterForm(initialRegisterForm);
+                      // setRegisterForm(initialRegisterForm);
                       setRegisterError("");
                       closeRegisterModal();
                     }}
@@ -507,7 +340,7 @@ const UserManage = () => {
                 {/* Form */}
                 <form
                   className="p-6 overflow-y-auto h-[calc(100vh-90px)]"
-                  onSubmit={handleRegisterSubmit}
+                  onSubmit={handleRegisterUser}
                 >
                   <div className="space-y-4">
                     {/* Satpam ID */}
@@ -521,8 +354,8 @@ const UserManage = () => {
                         name="Nip"
                         placeholder="Enter satpam ID"
                         className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        value={registerForm.Nip}
-                        onChange={handleRegisterChange}
+                        value={employeeNumber}
+                        onChange={(e) => setEmployeeNumber(e.target.value)}
                         required
                       />
                     </div>
@@ -538,27 +371,28 @@ const UserManage = () => {
                         name="nama"
                         placeholder="Enter full name"
                         className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        value={registerForm.nama}
-                        onChange={handleRegisterChange}
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
                         required
                       />
                     </div>
 
-                    {/* Station */}
-                    {/* <div>
+                    {/* Username */}
+                    <div>
                       <label className="text-sm font-medium text-gray-700">
-                        Station
+                        Username
                       </label>
 
-                      <select className="select select-bordered w-full mt-1 bg-gray-50">
-                        <option disabled selected>
-                          Select station
-                        </option>
-                        {listUnit.map((item) => (
-                          <option>{item}</option>
-                        ))}
-                      </select>
-                    </div> */}
+                      <input
+                        type="text"
+                        name="username"
+                        placeholder="Enter username"
+                        className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                      />
+                    </div>
 
                     {/* Phone */}
                     <div>
@@ -571,8 +405,8 @@ const UserManage = () => {
                         name="phone"
                         placeholder="Enter phone number"
                         className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm"
-                        value={registerForm.phone}
-                        onChange={handleRegisterChange}
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
                         required
                       />
                     </div>
@@ -588,8 +422,8 @@ const UserManage = () => {
                         name="email"
                         placeholder="Enter email address"
                         className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm"
-                        value={registerForm.email}
-                        onChange={handleRegisterChange}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         required
                       />
                     </div>
@@ -605,8 +439,8 @@ const UserManage = () => {
                         name="password"
                         placeholder="Enter password"
                         className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm"
-                        value={registerForm.password}
-                        onChange={handleRegisterChange}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         minLength={8}
                         required
                       />
@@ -621,25 +455,36 @@ const UserManage = () => {
                       <select
                         className="select select-bordered w-full mt-1 bg-white border-gray-300 text-sm"
                         name="role"
-                        value={registerForm.role}
-                        onChange={handleRegisterChange}
+                        value={roleId}
+                        onChange={(e) => setRoleId(e.target.value)}
+                        disabled={
+                          isRolesPending || isRolesError || roles.length === 0
+                        }
                         required
                       >
                         <option value="" disabled>
-                          Select role
+                          {isRolesPending
+                            ? "Memuat Role..."
+                            : isRolesError
+                              ? "Gagal memuat role"
+                              : roles.length === 0
+                                ? "Role tidak tersedia"
+                                : "Select role"}
                         </option>
-                        <option value="Chief Security">Chief Security</option>
-                        <option value="Admin Planner">Admin Planner</option>
-                        <option value="Danru Security">Danru Security</option>
-                        <option value="Anggota Security">
-                          Anggota Security
-                        </option>
+                        {roles.map((role) => (
+                          <option key={role.id} value={role.id}>
+                            {role.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
                     {/* Action */}
                     {registerError && (
-                      <div className="alert alert-error mt-4 text-sm p-3 rounded-lg">
+                      <div
+                        role="alert"
+                        className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+                      >
                         <span>{registerError}</span>
                       </div>
                     )}
@@ -647,10 +492,10 @@ const UserManage = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          setRegisterForm(initialRegisterForm);
                           setRegisterError("");
                           closeRegisterModal();
                         }}
+                        disabled={isRegistering}
                         className="btn flex-1 bg-gray-100 border-none text-gray-700"
                       >
                         Cancel
@@ -658,9 +503,10 @@ const UserManage = () => {
 
                       <button
                         type="submit"
+                        disabled={isRegistering}
                         className="btn flex-1 bg-[#FED400] border-none text-gray-900 hover:bg-[#e8c200]"
                       >
-                        Register Satpam
+                        {isRegistering ? "Mendaftarkan..." : "Register Satpam"}
                       </button>
                     </div>
                   </div>
@@ -671,7 +517,6 @@ const UserManage = () => {
               <form method="dialog" className="modal-backdrop">
                 <button
                   onClick={() => {
-                    setRegisterForm(initialRegisterForm);
                     setRegisterError("");
                     closeRegisterModal();
                   }}
@@ -738,146 +583,34 @@ const UserManage = () => {
               <li>
                 <button
                   type="button"
-                  onClick={() => setSelectedUnit("")}
+                  onClick={() => {
+                    setSelectedUnit("");
+                    setCurrentPage(1);
+                  }}
                   className="text-xs"
                 >
                   Semua Unit
                 </button>
               </li>
 
-              {listUnit.map((item) => (
-                <li key={item}>
+              {listUnit.map((unit) => (
+                <li key={unit}>
                   <button
                     type="button"
-                    onClick={() => setSelectedUnit(item)}
+                    onClick={() => {
+                      setSelectedUnit(unit);
+                      setCurrentPage(1);
+                    }}
                     className="text-xs"
                   >
-                    {item}
+                    {unit}
                   </button>
                 </li>
               ))}
             </ul>
           </div>
-
-          {/* <div className="dropdown dropdown-start bg-gray-100 rounded-lg">
-            <div
-              tabIndex={0}
-              role="button"
-              className="btn bg-gray-100 flex items-center"
-            >
-              <span className="text-xs text-gray-700">
-                {selectedStatus || "Semua"}
-              </span>
-
-              <ArrowDown2 size={17} color="gray" />
-            </div>
-            <ul
-              tabIndex={-1}
-              className="dropdown-content menu bg-gray-100 rounded-box z-1 w-52 p-2 shadow-sm"
-            >
-              <li>
-                <button
-                  type="button"
-                  onClick={() => setSelectedStatus("")}
-                  className="text-xs"
-                >
-                  Semua
-                </button>
-              </li>
-
-              {listStatus.map((item) => (
-                <li key={item}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedStatus(item)}
-                    className="text-xs"
-                  >
-                    {item}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div> */}
         </div>
         {/* Input */}
-
-        {/* Card */}
-        {/* <div className="grid grid-cols-4 gap-3 mt-5">
-          <div className="flex items-center justify-between bg-white shadow-sm p-4 rounded-lg">
-            <div className="gap-3">
-              <div>
-                <h1 className="text-gray-500 uppercase text-sm">
-                  total security officers
-                </h1>
-                <div className="flex gap-1 mt-2">
-                  <p className="text-black font-bold text-xl">154</p>
-                  <p className="text-blue-700 text-xs self-end mb-0.5 ml-1">
-                    12 Sub-areas
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-cyan-100 rounded-lg p-2">
-              <UserSquare size={20} color="black" />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between bg-white shadow-sm p-4 rounded-lg">
-            <div className="gap-3">
-              <div>
-                <h1 className="text-gray-500 uppercase text-sm">
-                  total security officers
-                </h1>
-                <div className="flex gap-1 mt-2">
-                  <p className="text-black font-bold text-xl">154</p>
-                  <p className="text-blue-700 text-xs self-end mb-0.5 ml-1">
-                    12 Sub-areas
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-cyan-100 rounded-lg p-2">
-              <UserSquare size={20} color="black" />
-            </div>
-          </div>
-          <div className="flex items-center justify-between bg-white shadow-sm p-4 rounded-lg">
-            <div className="gap-3">
-              <div>
-                <h1 className="text-gray-500 uppercase text-sm">
-                  total security officers
-                </h1>
-                <div className="flex gap-1 mt-2">
-                  <p className="text-black font-bold text-xl">154</p>
-                  <p className="text-blue-700 text-xs self-end mb-0.5 ml-1">
-                    12 Sub-areas
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-cyan-100 rounded-lg p-2">
-              <UserSquare size={20} color="black" />
-            </div>
-          </div>
-          <div className="flex items-center justify-between bg-white shadow-sm p-4 rounded-lg">
-            <div className="gap-3">
-              <div>
-                <h1 className="text-gray-500 uppercase text-sm">
-                  total security officers
-                </h1>
-                <div className="flex gap-1 mt-2">
-                  <p className="text-black font-bold text-xl">154</p>
-                  <p className="text-blue-700 text-xs self-end mb-0.5 ml-1">
-                    12 Sub-areas
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-cyan-100 rounded-lg p-2">
-              <UserSquare size={20} color="black" />
-            </div>
-          </div>
-        </div> */}
-        {/* Card */}
 
         {registerSuccess && (
           <div className="alert alert-success mt-4 bg-green-50 text-green-800 border border-green-200 p-3 rounded-lg flex justify-between">
@@ -922,30 +655,30 @@ const UserManage = () => {
                 </thead>
 
                 <tbody className="divide-y divide-gray-100">
-                  {currentUsers.length > 0 ? (
-                    currentUsers.map((item) => {
+                  {currentUsers?.length > 0 ? (
+                    currentUsers?.map((item) => {
                       return (
                         <tr
-                          key={item.Nip}
+                          key={item.employeeNumber}
                           className="transition-colors hover:bg-gray-50"
                         >
                           {/* PERSONEL */}
                           <td className="px-4 py-3">
                             <div className="font-medium text-gray-900">
-                              {item.nama}
+                              {item.fullName}
                             </div>
 
                             <div className="text-xs text-gray-500">
-                              {item.section}
+                              {item.site?.code ?? "-"}
                             </div>
                           </td>
 
                           {/* PENUGASAN */}
                           <td className="px-4 py-3">
-                            {item.unit ? (
+                            {item.site?.name ? (
                               <div>
                                 <div className="font-medium text-gray-800">
-                                  {item.unit}
+                                  {item.site.name}
                                 </div>
 
                                 <div className="text-xs text-gray-500">
@@ -955,7 +688,7 @@ const UserManage = () => {
                             ) : (
                               <div>
                                 <p className="text-gray-500 italic text-xs">
-                                  Unit not assign now
+                                  Belum Ditugaskan
                                 </p>
                               </div>
                             )}
@@ -964,30 +697,31 @@ const UserManage = () => {
                           {/* ROLE */}
                           <td className="px-4 py-3">
                             <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
-                              {item.role}
+                              {item.role?.name}
                             </span>
                           </td>
 
                           {/* STATUS */}
                           <td className="px-4 py-3">
-                            <div className="flex items-center gap-3">
-                              <input
-                                type="checkbox"
-                                className="toggle toggle-success toggle-sm"
-                                checked={item.status === "Aktif"}
-                                onChange={() => handleStatusChange(item.Nip)}
+                            <span
+                              className={`inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-medium ${
+                                item.status === "ACTIVE"
+                                  ? "bg-green-50 text-green-700"
+                                  : "bg-gray-100 text-gray-600"
+                              }`}
+                            >
+                              <span
+                                className={`h-2 w-2 rounded-full ${
+                                  item.status === "ACTIVE"
+                                    ? "bg-green-500"
+                                    : "bg-gray-400"
+                                }`}
                               />
 
-                              <span
-                                className={`text-xs font-medium ${
-                                  item.status === "Aktif"
-                                    ? "text-green-700"
-                                    : "text-gray-500"
-                                }`}
-                              >
-                                {item.status}
-                              </span>
-                            </div>
+                              {item.status === "ACTIVE"
+                                ? "Aktif"
+                                : "Tidak Aktif"}
+                            </span>
                           </td>
 
                           {/* ACTION */}
@@ -1039,57 +773,13 @@ const UserManage = () => {
             {/* Modal Detail User */}
 
             {/* PAGINATION */}
-            <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
-              <div className="text-xs text-gray-500">
-                Menampilkan{" "}
-                <span className="font-medium text-gray-700">
-                  {startIndex + 1}
-                </span>{" "}
-                -{" "}
-                <span className="font-medium text-gray-700">
-                  {Math.min(startIndex + itemPerPage, users.length)}
-                </span>{" "}
-                dari{" "}
-                <span className="font-medium text-gray-700">
-                  {users.length}
-                </span>{" "}
-                personel
-              </div>
-
-              <div className="join">
-                <button
-                  className="join-item btn btn-sm"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage((prev) => prev - 1)}
-                >
-                  «
-                </button>
-
-                {Array.from({ length: totalPages }, (_, index) => {
-                  const page = index + 1;
-
-                  return (
-                    <button
-                      key={page}
-                      className={`join-item btn btn-sm ${
-                        currentPage === page ? "btn-active" : ""
-                      }`}
-                      onClick={() => setCurrentPage(page)}
-                    >
-                      {page}
-                    </button>
-                  );
-                })}
-
-                <button
-                  className="join-item btn btn-sm"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage((prev) => prev + 1)}
-                >
-                  »
-                </button>
-              </div>
-            </div>
+            <UserPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredUser.length}
+              itemPerPage={itemPerPage}
+              onPageChange={setCurrentPage}
+            />
           </div>
         </div>
         {/* Table */}
