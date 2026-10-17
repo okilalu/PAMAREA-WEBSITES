@@ -1,5 +1,6 @@
 import {
   AddCircle,
+  Additem,
   ArrowDown2,
   CloseCircle,
   Edit,
@@ -13,12 +14,13 @@ import {
   TaskSquare,
   TickCircle,
   Trash,
-  UserAdd,
 } from "iconsax-react";
 import React, { useMemo, useState } from "react";
 
 const QuestionBuilder = () => {
   const [selectedCheckpoint, setSelectedCheckpoint] = useState("");
+  const [selectedCheckpointQuestion, setselectedCheckpointQuestion] =
+    useState("");
   const [selectedShift, setSelectedShift] = useState("");
 
   const questionBuilder = [
@@ -215,7 +217,7 @@ const QuestionBuilder = () => {
             >
               <div className="flex items-center gap-1">
                 <div className="bg-[#FED400] p-1 rounded-lg">
-                  <UserAdd size={17} color="#6F5C00" />
+                  <Additem size={17} color="#6F5C00" />
                 </div>
                 <div className="ml-1">
                   <p className="text-gray-900 text-sm font-semibold">
@@ -229,15 +231,34 @@ const QuestionBuilder = () => {
 
         {/* Add Question Modal */}
         <dialog id="question_builder" className="modal">
-          {/* Menggunakan standar max-w-2xl agar responsif */}
           <div className="modal-box w-full max-w-2xl rounded-xl p-6 bg-white shadow-xl">
-            {/* --- HEADER --- */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-200">
-              <div className="flex items-center gap-2">
-                <AddCircle size={24} color="#2563eb" variant="Bold" />
-                <h3 className="text-lg font-bold text-gray-800">
-                  Tambah Pertanyaan Inspeksi Checkpoint
-                </h3>
+              <div>
+                <div className="flex items-center gap-2">
+                  <AddCircle size={24} color="#2563eb" variant="Bold" />
+                  <h3 className="text-lg font-bold text-gray-800">
+                    Tambah Pertanyaan Inspeksi Checkpoint
+                  </h3>
+                </div>
+                <div className="px-2 rounded-lg bg-white">
+                  <select
+                    id="checkpoint"
+                    value={selectedCheckpointQuestion}
+                    onChange={(e) =>
+                      setselectedCheckpointQuestion(e.target.value)
+                    }
+                    className="select select-bordered w-full bg-white text-sm"
+                  >
+                    <option value="" disabled>
+                      Pilih checkpoint
+                    </option>
+                    {checkpointList.map((item, index) => (
+                      <option key={index} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <button
                 className="p-2 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors focus:outline-none"
