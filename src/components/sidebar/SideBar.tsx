@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   Category,
   LocationDiscover,
+  LogoutCurve,
   Pointer,
   SecurityCard,
   SecurityTime,
@@ -13,8 +14,15 @@ import {
 import Dashboard from "../../pages/Dashboard";
 import UserManage from "../../pages/UserManage";
 import pamareaLogo from "../../assets/img/PAMAREA.png";
+// import PLNLOGO from "../../assets/img/PLNNusantaraPower.png";
 import Checkpoint from "../../pages/Checkpoint";
 import QuestionBuilder from "../../pages/QuestionBuilder";
+import NfcManage from "../../pages/NfcManage";
+import ScheduleManage from "../../pages/ScheduleManage";
+import RealTimeMonitor from "../../pages/RealTimeMonitor";
+import AnalyticAudit from "../../pages/AnalyticAudit";
+import { useLogout } from "../../hooks/auth";
+import { useNavigate } from "react-router-dom";
 
 type MenuItem = {
   name: string;
@@ -23,6 +31,8 @@ type MenuItem = {
 
 const Sidebar = () => {
   const [activeMenu, setActiveMenu] = useState("Dashboard");
+  const { mutate: logout, isPending } = useLogout();
+  const navigate = useNavigate();
 
   const menus: MenuItem[] = [
     {
@@ -74,55 +84,55 @@ const Sidebar = () => {
       case "User Management":
         return <UserManage />;
       case "NFC Management":
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-800">NFC Management</h1>
-          </div>
-        );
+        return <NfcManage />;
       case "Schedule Management":
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-800">
-              Schedule Management
-            </h1>
-          </div>
-        );
+        return <ScheduleManage />;
 
       case "Question Builder":
         return <QuestionBuilder />;
 
       case "Real-Time Monitoring":
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-800">
-              Real-Time Monitoring
-            </h1>
-          </div>
-        );
+        return <RealTimeMonitor />;
 
       case "Analytic & Audit":
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-800">
-              Analytic & Audit
-            </h1>
-          </div>
-        );
+        return <AnalyticAudit />;
 
       default:
         return <Dashboard />;
     }
   };
 
+  const clearLocalSession = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("access_token");
+
+    navigate("/login", { replace: true });
+  };
+
+  const handleLogout = () => {
+    if (isPending) return;
+
+    logout(undefined, {
+      onSuccess: () => {
+        clearLocalSession();
+      },
+      onError: (error) => {
+        console.error("Logout API gagal:", error);
+        clearLocalSession();
+      },
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#F5F8FA]">
       <aside className="fixed left-0 top-0 z-40 h-screen w-72 bg-[#0B3B60]">
         <div className="flex h-16 items-center gap-3 bg-[#002541] px-6">
-          <img
-            src={pamareaLogo}
-            alt="PAMAREA Logo"
+          {/* <img
+            src={PLNLOGO}
+            alt="PLN Logo"
             className="h-12 w-auto object-contain"
-          />
+          /> */}
 
           <div>
             <h1 className="text-md font-bold text-white">PAMAREA</h1>
@@ -131,6 +141,11 @@ const Sidebar = () => {
               Command Center
             </p>
           </div>
+          <img
+            src={pamareaLogo}
+            alt="PAMAREA Logo"
+            className="h-12 w-auto object-contain"
+          />
         </div>
 
         <nav className="px-4 py-6">
@@ -162,6 +177,17 @@ const Sidebar = () => {
             })}
           </div>
         </nav>
+        <div className="mt-auto border-t border-[#1C5277] p-4">
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={isPending}
+            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-red-300 transition-colors hover:bg-red-500/10 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+          >
+            <LogoutCurve size={20} color="red" />
+            <span>{isPending ? "Logging out..." : "Logout"}</span>
+          </button>
+        </div>
       </aside>
 
       <main className="ml-72 min-h-screen">{renderContent()}</main>
