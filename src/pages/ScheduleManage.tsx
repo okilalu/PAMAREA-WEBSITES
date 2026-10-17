@@ -40,7 +40,7 @@ const ScheduleManage = () => {
       name: "Bambang Wijaya",
       NIP: "982-SEC-1",
       posisi: "Pasca Shift Pagi",
-      status: "Istirahat",
+      status: "Tersedia",
     },
     {
       name: "Syaiful Anwar",
