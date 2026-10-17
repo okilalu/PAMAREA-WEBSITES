@@ -1,4 +1,3 @@
-// src/types/question/question-option.types.ts
 export interface QuestionOption {
   id: string;
   questionId: string;
@@ -6,4 +5,39 @@ export interface QuestionOption {
   label: string;
   sortOrder: number;
   createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateQuestionOptionPayload {
+  value: string;
+  label: string;
+  sortOrder: number;
+}
+
+export interface UpdateQuestionOptionPayload {
+  value?: string;
+  label?: string;
+  sortOrder?: number;
+}
+
+// Payload untuk membuat pilihan jawaban
+export interface CreateQuestionOptionRequest {
+  value: string;
+  label: string;
+  sortOrder?: number;
+}
+
+// Payload untuk memperbarui pilihan jawaban
+export interface UpdateQuestionOptionRequest {
+  value?: string;
+  label?: string;
+  sortOrder?: number;
+}
+
+// Data pilihan jawaban yang disertakan dalam pertanyaan
+export interface QuestionOptionSummary {
+  id: string;
+  value: string;
+  label: string;
+  sortOrder: number;
 }

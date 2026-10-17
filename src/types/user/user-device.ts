@@ -1,16 +1,49 @@
-// src/types/user/user-device.types.ts
 import type { DeviceStatus } from "../enums/prisma-enums";
 
-export interface UserDevice {
+import type { UserSummary } from "./user";
+
+export interface UserDeviceResponse {
   id: string;
   userId: string;
+
   deviceIdentifier: string;
+
+  platform: string | null;
+  model: string | null;
+  osVersion: string | null;
+  appVersion: string | null;
+
+  status: DeviceStatus;
+  lastSeenAt: string | null;
+
+  createdAt: string;
+  updatedAt: string;
+
+  user?: UserSummary;
+}
+
+export interface RegisterUserDeviceRequest {
+  deviceIdentifier: string;
+
   platform?: string | null;
   model?: string | null;
   osVersion?: string | null;
   appVersion?: string | null;
-  status: DeviceStatus;
-  lastSeenAt?: string | null;
-  createdAt: string;
-  updatedAt: string;
+}
+
+export interface UpdateUserDeviceRequest {
+  platform?: string | null;
+  model?: string | null;
+  osVersion?: string | null;
+  appVersion?: string | null;
+  status?: DeviceStatus;
+}
+
+export interface UserDeviceQuery {
+  userId?: string;
+  status?: DeviceStatus;
+  search?: string;
+
+  page?: number;
+  limit?: number;
 }
