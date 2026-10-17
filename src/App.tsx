@@ -1,17 +1,21 @@
-import Sidebar from "./components/sidebar/SideBar";
-// import AppRoutes from "./routes/AppRoutes";
+// import Sidebar from "./components/sidebar/SideBar";
+
+// function App() {
+//   return (
+//     <div className="bg-[#F2F5F9]">
+//       <div>
+//         <Sidebar />
+//       </div>
+//     </div>
+//   );
+// }
+
+// export default App;
+
+import AuthPage from "./pages/Auth";
 
 function App() {
-  return (
-    <div className="bg-[#F2F5F9]">
-      <div>
-        <Sidebar />
-      </div>
-      {/* <main className="">
-        <AppRoutes />
-      </main> */}
-    </div>
-  );
+  return <AuthPage />;
 }
 
 export default App;
