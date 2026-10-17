@@ -1,5 +1,4 @@
 import {
-  ArrowRight,
   ArrowRight2,
   Calendar,
   DocumentDownload,
@@ -10,6 +9,7 @@ import {
   Warning2,
 } from "iconsax-react";
 import React from "react";
+import MapsCheckpoint from "../components/mapsCheckpoint/MapsCheckpoint";
 
 const Dashboard = () => {
   const cardHazard = [
@@ -108,6 +108,30 @@ const Dashboard = () => {
     },
   ];
 
+  const summaryCardData = [
+    {
+      title: "Total Security",
+      value: 12,
+      type: "Security",
+      icon: <UserOctagon size={22} color="#2563EB" />,
+      bg: "bg-blue-50",
+    },
+    {
+      title: "Total Checkpoint",
+      value: 10,
+      type: "Checkpoint",
+      icon: <Location size={22} color="#4F46E5" />,
+      bg: "bg-indigo-50",
+    },
+    {
+      title: "Total Pelanggaran",
+      value: 5,
+      type: "Kejadian",
+      icon: <Warning2 size={22} color="#DC2626" />,
+      bg: "bg-red-50",
+    },
+  ];
+
   const sliceData = cardHazard.slice(0, 3);
   return (
     <div className="min-h-screen ">
@@ -140,7 +164,7 @@ const Dashboard = () => {
             {/* Information */}
             <div className="min-w-0">
               <h1 className="text-2xl font-bold text-gray-800">
-                Ringkasan Eksekutif - Gardu Induk (GI)
+                Ringkasan Data - PLTU SAMBELIA
               </h1>
 
               <p className="mt-1 text-sm text-gray-500">
@@ -190,42 +214,46 @@ const Dashboard = () => {
         {/* Card */}
         <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
           {/* Total Patrol */}
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">
-                  Total Patrol Today
-                </p>
+          {summaryCardData.map((item) => (
+            <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    {item.title}
+                  </p>
 
-                <div className="mt-5 flex items-end gap-1">
-                  <h1 className="text-2xl font-bold text-gray-800">42</h1>
+                  <div className="mt-5 flex items-end gap-1">
+                    <h1 className="text-2xl font-bold text-gray-800">
+                      {item.value}
+                    </h1>
 
-                  <p className="mb-0.5 text-sm text-gray-500">Officers</p>
+                    <p className="mb-0.5 text-sm text-gray-500 ml-1">
+                      {item.type}
+                    </p>
+                  </div>
                 </div>
+
+                <div className={`rounded-lg p-2.5 ${item.bg}`}>{item.icon}</div>
               </div>
 
-              <div className="rounded-lg bg-blue-50 p-2.5">
-                <UserOctagon size={22} color="#2563EB" />
-              </div>
-            </div>
+              {/* <div className="mt-4 flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-gray-400">Target</span>
 
-            <div className="mt-4 flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <span className="text-xs text-gray-400">Target</span>
+                  <span className="text-xs font-medium text-gray-600">
+                    40 officers
+                  </span>
+                </div>
 
-                <span className="text-xs font-medium text-gray-600">
-                  40 officers
+                <span className="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-600">
+                  +2 above target
                 </span>
-              </div>
-
-              <span className="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-600">
-                +2 above target
-              </span>
+              </div> */}
             </div>
-          </div>
+          ))}
 
           {/* Active Checkpoints */}
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          {/* <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">
@@ -257,10 +285,10 @@ const Dashboard = () => {
                 128 / 128
               </span>
             </div>
-          </div>
+          </div> */}
 
           {/* Out Of Radius Alert */}
-          <div className="rounded-lg border border-red-100 bg-white p-4 shadow-sm">
+          {/* <div className="rounded-lg border border-red-100 bg-white p-4 shadow-sm">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">
@@ -290,9 +318,24 @@ const Dashboard = () => {
                 2 Active
               </span>
             </div>
-          </div>
+          </div> */}
         </div>
         {/* Card */}
+
+        {/* Maps */}
+        <div className="mx-auto max-w-7xl mt-5">
+          <div className="mb-6 bg-white rounded-lg p-4 shadow-sm">
+            <h1 className="text-xl font-bold text-gray-900">
+              Monitoring Area Patroli
+            </h1>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Pantau lokasi dan checkpoint patroli satpam.
+            </p>
+            <MapsCheckpoint />
+          </div>
+        </div>
+        {/* Maps */}
 
         {/* Table */}
         <div className="flex gap-5">
@@ -300,7 +343,7 @@ const Dashboard = () => {
             <div className="bg-gray-200 rounded-lg px-4 py-2 flex items-center justify-between">
               <div className="">
                 <h2 className="text-gray-800 font-bold">
-                  Recent Patrol Executions
+                  Patroli Checkpoint Terbaru
                 </h2>
                 <p className="text-gray-600 text-xs tracking-wider">
                   Last verified checkpoints across substation perimeters
@@ -308,7 +351,7 @@ const Dashboard = () => {
               </div>
               <button className="flex items-center justify-center cursor-pointer">
                 <p className="text-xs tracking-wider text-blue-800 font-semibold">
-                  View All Logs
+                  Lihat Semua Logs
                 </p>
                 <ArrowRight2 size={17} color="blue" />
               </button>
@@ -393,7 +436,7 @@ const Dashboard = () => {
           </div>
 
           <div className="mt-5 bg-white p-4 shadow-sm rounded-lg w-[40%]">
-            <div className="bg-gray-200 rounded-lg p-3 flex items-center justify-between gap-2">
+            <div className="bg-gray-100 rounded-lg p-3 flex items-center justify-between gap-2">
               <div className="flex items-center">
                 <div className="flex items-center gap-1">
                   <Notification size={20} color="red" />
@@ -416,7 +459,7 @@ const Dashboard = () => {
 
             {/* Card hazard */}
             {sliceData.map((item) => (
-              <div className="bg-gray-200 rounded-lg p-3 my-5">
+              <div className="bg-gray-100 rounded-lg p-3 my-5">
                 <div className="flex items-center justify-between">
                   <div className="bg-red-800 rounded-sm px-2">
                     <p className="text-sm text-white tracking-wider font-semibold">
@@ -452,14 +495,14 @@ const Dashboard = () => {
                     </p>
                   </div>
 
-                  <div className="mt-3 flex w-full justify-end">
+                  {/* <div className="mt-3 flex w-full justify-end">
                     <button className="flex items-center justify-center gap-1 rounded-lg bg-[#FED400] px-3 py-1">
                       <span className="text-xs font-semibold text-gray-800">
                         Action / Assign
                       </span>
                       <ArrowRight size={13} color="gray" className="mt-0.5" />
                     </button>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             ))}
