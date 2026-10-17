@@ -1,0 +1,35 @@
+[
+  {
+    "Nip": "520210210210120",
+    "nama": "Dimas",
+    "phone": "081234512341",
+    "email": "test@gmail.com",
+    "role": "Admin Planner",
+    "unit": null,
+    "section": "SEC-001",
+    "device": "Samsung",
+    "status": "Aktif"
+  },
+  {
+    "Nip": "520210210210121",
+    "nama": "Andi",
+    "phone": "081234512341",
+    "email": "test@gmail.com",
+    "role": "Anggota Security",
+    "unit": "Area Trafo Daya 1",
+    "section": "SEC-002",
+    "device": "Samsung",
+    "status": "Aktif"
+  },
+  {
+    "Nip": "520210210210122",
+    "nama": "Rizky",
+    "phone": "081234512341",
+    "email": "test@gmail.com",
+    "role": "Anggota Security",
+    "unit": "Area Trafo Daya 2",
+    "section": "SEC-003",
+    "device": "Xiaomi",
+    "status": "Aktif"
+  }
+]

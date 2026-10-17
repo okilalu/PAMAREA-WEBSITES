@@ -5,7 +5,7 @@ import { checkpointService } from "../../services/checkpoints/checkpoint.service
 import type {
   CreateCheckpointPayload,
   UpdateCheckpointPayload,
-} from "../../types/checkpoints";
+} from "../../types/patrol-point/checkpoints";
 
 export const checkpointKeys = {
   all: ["checkpoints"] as const,
