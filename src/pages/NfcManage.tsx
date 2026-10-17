@@ -573,7 +573,7 @@ const NfcManage = () => {
                       {item.status === "Rusak" && (
                         <div className="bg-[#A90009] rounded-lg px-3 py-1">
                           <div className="flex items-center gap-1">
-                            <div className="bg-white p-1 h-[1px] rounded-full " />
+                            <div className="bg-white p-1 h-[1px] rounded-full animate-ping " />
                             <p className="uppercase text-sm text-white font-semibold">
                               {item.status}
                             </p>
