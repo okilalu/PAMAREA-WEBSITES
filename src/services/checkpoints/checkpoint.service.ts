@@ -4,7 +4,7 @@ import type {
   Checkpoint,
   CreateCheckpointPayload,
   UpdateCheckpointPayload,
-} from "../../types/checkpoints";
+} from "../../types/patrol-point/checkpoints";
 
 const delay = (ms = 400) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
