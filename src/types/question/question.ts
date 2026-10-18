@@ -41,7 +41,7 @@ export interface CreateQuestionPayload {
   questionType: QuestionType;
   isRequired?: boolean;
   photoRequirement?: PhotoRequirement;
-  status?: QuestionStatus;
+  // status?: QuestionStatus;
 }
 
 // Payload untuk memperbarui pertanyaan
