@@ -2,7 +2,6 @@ import {
   ArrowDown2,
   CloseCircle,
   Edit,
-  Eye,
   People,
   SearchNormal,
   SearchStatus,
@@ -10,13 +9,22 @@ import {
   UserAdd,
 } from "iconsax-react";
 import React, { useMemo, useState } from "react";
-import { useCreateUser, useUsers } from "../hooks/users/useUsers";
+import {
+  useCreateUser,
+  useDeleteUser,
+  useUpdateUser,
+  useUsers,
+} from "../hooks/users/useUsers";
 import { useRoles } from "../hooks/role/useRole";
 import UserPagination from "../components/manageUser/UserPagination";
 
 const UserManage = () => {
   const { data: listUsers } = useUsers();
   const { mutateAsync: register, isPending: isRegistering } = useCreateUser();
+  const { mutateAsync: updateUser, isPending: isUpdatingUser } =
+    useUpdateUser();
+  const { mutateAsync: removeUser, isPending: isDeletingUser } =
+    useDeleteUser();
   const {
     data: rolesResponse,
     isPending: isRolesPending,
@@ -29,6 +37,7 @@ const UserManage = () => {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [roleId, setRoleId] = useState("");
+  const [siteId, setSiteId] = useState("");
 
   const [registerError, setRegisterError] = useState("");
   const [registerSuccess, setRegisterSuccess] = useState("");
@@ -37,12 +46,12 @@ const UserManage = () => {
   const [search, setSearch] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
   const [selectedUnit, setSelectedUnit] = useState("");
-  // const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedUserId, setSelectedUserId] = useState("");
+
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const users = listUsers?.data ?? [];
   const roles = rolesResponse?.data ?? [];
-
-  console.log("USERS", JSON.stringify(users, null, 2));
 
   const listUnit = useMemo(() => {
     return Array.from(
@@ -107,10 +116,37 @@ const UserManage = () => {
   ];
 
   const openRegisterModal = () => {
+    resetRegisterForm();
+    setSelectedUserId("");
+    setIsEditMode(false);
+
     const modal = document.getElementById(
       "register_satpam_modal",
     ) as HTMLDialogElement;
     modal.showModal();
+  };
+
+  const openEditModal = (user: (typeof users)[number]) => {
+    setSelectedUserId(user.id);
+    setIsEditMode(true);
+
+    setEmployeeNumber(user.employeeNumber ?? "");
+    setFullName(user.fullName ?? "");
+    setUsername(user.username ?? "");
+    setEmail(user.email ?? "");
+    setPhone(user.phone ?? "");
+    setPassword("");
+    setRoleId(user.roleId ?? user.role?.id ?? "");
+    setSiteId(user.siteId ?? user.site?.id ?? "");
+
+    setRegisterError("");
+    setRegisterSuccess("");
+
+    const modal = document.getElementById(
+      "register_satpam_modal",
+    ) as HTMLDialogElement | null;
+
+    modal?.showModal();
   };
 
   const closeRegisterModal = () => {
@@ -128,6 +164,8 @@ const UserManage = () => {
     setPhone("");
     setPassword("");
     setRoleId("");
+    setSiteId("");
+
     setRegisterError("");
   };
 
@@ -156,7 +194,10 @@ const UserManage = () => {
       setRegisterError("Lengkapi semua field yang wajib diisi.");
       return;
     }
-    if (!/^\d+$/.test(normalizedEmployeeNumber)) {
+    if (
+      normalizedEmployeeNumber !== "" &&
+      !/^SEC-\d{3}$/.test(normalizedEmployeeNumber)
+    ) {
       setRegisterError("Satpam ID hanya boleh berisi angka.");
       return;
     }
@@ -221,6 +262,125 @@ const UserManage = () => {
     } catch (error) {
       alert("Error saat register user");
       console.log(error);
+    }
+  };
+
+  const handleUpdateUser = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    setRegisterError("");
+    setRegisterSuccess("");
+
+    if (!selectedUserId) {
+      setRegisterError("User yang akan diperbarui belum dipilih.");
+      return;
+    }
+
+    const normalizedEmployeeNumber = employeeNumber.trim();
+    const normalizedFullName = fullName.trim();
+    const normalizedUsername = username.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPhone = phone.trim();
+
+    if (
+      !normalizedEmployeeNumber ||
+      !normalizedFullName ||
+      !normalizedUsername ||
+      !normalizedEmail ||
+      !normalizedPhone ||
+      !roleId
+    ) {
+      setRegisterError("Lengkapi semua field yang wajib diisi.");
+      return;
+    }
+
+    if (!/^SEC-\d{3}$/.test(normalizedEmployeeNumber)) {
+      setRegisterError("Format Satpam ID harus seperti SEC-001.");
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      setRegisterError("Format email tidak valid.");
+      return;
+    }
+
+    if (!/^\+?[\d\s()-]{8,20}$/.test(normalizedPhone)) {
+      setRegisterError("Format nomor telepon tidak valid.");
+      return;
+    }
+
+    const duplicateID = users.some(
+      (user) =>
+        user.id !== selectedUserId &&
+        user.employeeNumber?.toLowerCase() ===
+          normalizedEmployeeNumber.toLowerCase(),
+    );
+
+    if (duplicateID) {
+      setRegisterError("Satpam ID sudah digunakan oleh user lain.");
+      return;
+    }
+
+    const duplicateEmail = users.some(
+      (user) =>
+        user.id !== selectedUserId &&
+        user.email?.toLowerCase() === normalizedEmail,
+    );
+
+    if (duplicateEmail) {
+      setRegisterError("Email sudah digunakan oleh user lain.");
+      return;
+    }
+
+    const selectedRoleData = roles.find((role) => role.id === roleId);
+
+    if (!selectedRoleData) {
+      setRegisterError("Silakan pilih role yang valid.");
+      return;
+    }
+
+    const payload = {
+      employeeNumber: normalizedEmployeeNumber,
+      fullName: normalizedFullName,
+      username: normalizedUsername,
+      email: normalizedEmail,
+      phone: normalizedPhone,
+      roleId: selectedRoleData.id,
+      siteId: siteId || undefined,
+    };
+
+    try {
+      await updateUser({
+        id: selectedUserId,
+        payload,
+      });
+
+      setRegisterSuccess("Data user berhasil diperbarui.");
+
+      resetRegisterForm();
+      setSelectedUserId("");
+      setIsEditMode(false);
+
+      closeRegisterModal();
+    } catch (error) {
+      console.error("Gagal memperbarui user:", error);
+      setRegisterError("Gagal memperbarui user. Silakan periksa kembali data.");
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    const confirmed = window.confirm(
+      "Apakah kamu yakin ingin menghapus user ini?",
+    );
+
+    if (!confirmed) return;
+    try {
+      await removeUser(userId);
+
+      setRegisterSuccess("User berhasil dihapus.");
+    } catch (error) {
+      console.log(error);
+      setRegisterError("Gagal menghapus user. Silakan coba kembali.");
     }
   };
 
@@ -289,7 +449,7 @@ const UserManage = () => {
                 </div>
                 <div className="ml-1">
                   <p className="text-gray-900 text-sm font-semibold">
-                    Register Satpam Baru
+                    {isEditMode ? "Edit Data Satpam" : "Register New Satpam"}
                   </p>
                 </div>
               </div>
@@ -329,6 +489,7 @@ const UserManage = () => {
                     onClick={() => {
                       // setRegisterForm(initialRegisterForm);
                       setRegisterError("");
+                      setIsEditMode(false);
                       closeRegisterModal();
                     }}
                     className="btn btn-sm btn-circle btn-ghost"
@@ -340,7 +501,8 @@ const UserManage = () => {
                 {/* Form */}
                 <form
                   className="p-6 overflow-y-auto h-[calc(100vh-90px)]"
-                  onSubmit={handleRegisterUser}
+                  // onSubmit={handleRegisterUser}
+                  onSubmit={isEditMode ? handleUpdateUser : handleRegisterUser}
                 >
                   <div className="space-y-4">
                     {/* Satpam ID */}
@@ -429,22 +591,24 @@ const UserManage = () => {
                     </div>
 
                     {/* Password */}
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">
-                        Password
-                      </label>
+                    {!isEditMode && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">
+                          Password
+                        </label>
 
-                      <input
-                        type="password"
-                        name="password"
-                        placeholder="Enter password"
-                        className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        minLength={8}
-                        required
-                      />
-                    </div>
+                        <input
+                          type="password"
+                          name="password"
+                          placeholder="Enter password"
+                          className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          minLength={8}
+                          required={!isEditMode}
+                        />
+                      </div>
+                    )}
 
                     {/* Role */}
                     <div>
@@ -492,10 +656,12 @@ const UserManage = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          setRegisterError("");
+                          resetRegisterForm();
+                          setSelectedUserId("");
+                          setIsEditMode(false);
                           closeRegisterModal();
                         }}
-                        disabled={isRegistering}
+                        disabled={isRegistering || isUpdatingUser}
                         className="btn flex-1 bg-gray-100 border-none text-gray-700"
                       >
                         Cancel
@@ -503,10 +669,14 @@ const UserManage = () => {
 
                       <button
                         type="submit"
-                        disabled={isRegistering}
+                        disabled={isRegistering || isUpdatingUser}
                         className="btn flex-1 bg-[#FED400] border-none text-gray-900 hover:bg-[#e8c200]"
                       >
-                        {isRegistering ? "Mendaftarkan..." : "Register Satpam"}
+                        {isRegistering || isUpdatingUser
+                          ? "Menyimpan..."
+                          : isEditMode
+                            ? "Simpan Perubahan"
+                            : "Register Satpam"}
                       </button>
                     </div>
                   </div>
@@ -518,6 +688,7 @@ const UserManage = () => {
                 <button
                   onClick={() => {
                     setRegisterError("");
+                    setIsEditMode(false);
                     closeRegisterModal();
                   }}
                 >
@@ -727,15 +898,30 @@ const UserManage = () => {
                           {/* ACTION */}
                           <td className="px-4 py-3 text-center">
                             <div className="flex items-center justify-center gap-4">
-                              <button className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200">
+                              <button
+                                type="button"
+                                onClick={() => openEditModal(item)}
+                                title="Edit user"
+                                className="cursor-pointer rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200"
+                              >
                                 <Edit size={17} color="gray" />
                               </button>
-                              <button className="rounded-md bg-red-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-red-200">
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteUser(item.id)}
+                                disabled={isDeletingUser}
+                                title="Hapus user"
+                                className="cursor-pointer rounded-md bg-red-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-red-200"
+                              >
                                 <Trash size={17} color="red" />
                               </button>
-                              <button className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200">
+                              {/* <button
+                                type="button"
+                                title="Lihat detail"
+                                className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200"
+                              >
                                 <Eye size={17} color="gray" />
-                              </button>
+                              </button> */}
                             </div>
                           </td>
                         </tr>
