@@ -46,7 +46,7 @@ export interface UpdateUserRequest {
   username?: string;
   email?: string | null;
   phone?: string | null;
-  password: string;
+  password?: string;
 
   roleId?: string;
   siteId?: string | null;
