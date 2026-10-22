@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  Cardano,
   Category,
   LocationDiscover,
   LogoutCurve,
@@ -23,6 +24,7 @@ import RealTimeMonitor from "../../pages/RealTimeMonitor";
 import AnalyticAudit from "../../pages/AnalyticAudit";
 import { useLogout } from "../../hooks/auth";
 import { useNavigate } from "react-router-dom";
+import ManageFinding from "../../pages/ManageFinding";
 
 type MenuItem = {
   name: string;
@@ -60,6 +62,10 @@ const Sidebar = () => {
       icon: TaskSquare,
     },
     {
+      name: "Finding Management",
+      icon: Cardano,
+    },
+    {
       name: "Real-Time Monitoring",
       icon: Pointer,
     },
@@ -90,6 +96,9 @@ const Sidebar = () => {
 
       case "Question Builder":
         return <QuestionBuilder />;
+
+      case "Finding Management":
+        return <ManageFinding />;
 
       case "Real-Time Monitoring":
         return <RealTimeMonitor />;
