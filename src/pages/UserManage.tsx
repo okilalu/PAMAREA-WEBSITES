@@ -840,7 +840,7 @@ const UserManage = () => {
                             </div>
 
                             <div className="text-xs text-gray-500">
-                              {item.site?.code ?? "-"}
+                              {item.employeeNumber ?? "-"}
                             </div>
                           </td>
 

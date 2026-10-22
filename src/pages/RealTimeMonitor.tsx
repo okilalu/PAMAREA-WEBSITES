@@ -115,7 +115,7 @@ const RealTimeMonitor = () => {
             <div className="flex items-center gap-1">
               <div className="bg-[#00529C]  px-1 py-3 h-[1px] rounded-xs" />
               <h1 className="font-bold text-2xl">
-                Papan Peringkat & Analisis Kinerja Satpam
+                Analisis Kinerja Satpam & Laporan Temuan
               </h1>
             </div>
             <p className="text-gray-600 tracking-wide text-sm">
@@ -214,7 +214,6 @@ const RealTimeMonitor = () => {
 
         {/* MAIN CONTENT: CHART & RANKING */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* BAGIAN KIRI: GRAFIK (Lebar 7 Kolom) */}
           <div className="lg:col-span-7 bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col">
             <div className="flex justify-between items-start mb-8">
               <div className="flex items-center gap-2">

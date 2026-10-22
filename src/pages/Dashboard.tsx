@@ -10,8 +10,12 @@ import {
 } from "iconsax-react";
 import React from "react";
 import MapsCheckpoint from "../components/mapsCheckpoint/MapsCheckpoint";
+import { useSecurityUsers } from "../hooks/users/useUsers";
+import { usePatrolPoints } from "../hooks/patrol-point/usePatrolPoints";
 
 const Dashboard = () => {
+  const { data: security } = useSecurityUsers();
+  const { data: checkpoints } = usePatrolPoints();
   const cardHazard = [
     {
       alert: "Critical",
@@ -111,22 +115,22 @@ const Dashboard = () => {
   const summaryCardData = [
     {
       title: "Total Security",
-      value: 12,
+      value: security?.data.length,
       type: "Security",
       icon: <UserOctagon size={22} color="#2563EB" />,
       bg: "bg-blue-50",
     },
     {
-      title: "Total Checkpoint",
-      value: 10,
-      type: "Checkpoint",
+      title: "Jumlah Area Patrol",
+      value: checkpoints?.length,
+      type: "Area",
       icon: <Location size={22} color="#4F46E5" />,
       bg: "bg-indigo-50",
     },
     {
-      title: "Total Pelanggaran",
+      title: "Jumlah Temuan Patrol",
       value: 5,
-      type: "Kejadian",
+      type: "Temuan",
       icon: <Warning2 size={22} color="#DC2626" />,
       bg: "bg-red-50",
     },
@@ -163,9 +167,7 @@ const Dashboard = () => {
           <div className="flex items-center justify-between gap-6">
             {/* Information */}
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold text-gray-800">
-                Ringkasan Data - PLTU SAMBELIA
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
 
               <p className="mt-1 text-sm text-gray-500">
                 Pemantauan kepatuhan patroli keamanan dan pengawasan perimeter
@@ -449,7 +451,10 @@ const Dashboard = () => {
                   <p className="text-xs text-white">Urgent</p>
                 </div>
               </div>
-              <button className="flex items-center justify-center cursor-pointer">
+              <button
+                onClick={() => console.log("Click")}
+                className="flex items-center justify-center cursor-pointer"
+              >
                 <p className="text-xs tracking-wider text-blue-800 font-semibold">
                   View All Logs
                 </p>

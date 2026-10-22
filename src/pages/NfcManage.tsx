@@ -12,9 +12,13 @@ import {
   SearchNormal,
 } from "iconsax-react";
 import React, { useMemo, useState } from "react";
+import { useNfcTags } from "../hooks/nfc/useNfc";
 
 const NfcManage = () => {
   const [selectedStatus, setSelectedStatus] = useState("Semua");
+  const { data: nfcTags } = useNfcTags();
+
+  console.log("DATA", JSON.stringify(nfcTags, null, 2));
 
   const dataNFC = [
     {
@@ -178,9 +182,7 @@ const NfcManage = () => {
           <div>
             <div className="flex items-center gap-1">
               <div className="bg-[#00529C]  px-1 py-3 h-[1px] rounded-xs" />
-              <h1 className="font-bold text-2xl">
-                Manajemen Tag NFC & Keamanan Hardware
-              </h1>
+              <h1 className="font-bold text-2xl">Manajemen NFC</h1>
             </div>
             <p className="text-gray-500 text-sm">
               Inventaris dan siklus hidup tag RFID/NFC fisik gardu induk,
@@ -500,11 +502,11 @@ const NfcManage = () => {
                       <input type="checkbox" className="checkbox" />
                     </label>
                   </th>
-                  <th className="uppercase">UID Tag & Hardware Info</th>
-                  <th className="uppercase">Lokasi & Checkpoint Binding</th>
-                  <th className="uppercase">Status Integritas</th>
-                  <th className="uppercase">Riwayat Patroli Terakhir</th>
-                  <th className="uppercase">Kontrol Aksi</th>
+                  <th className="uppercase">UID NFC</th>
+                  <th className="uppercase">Area Patrol</th>
+                  <th className="uppercase">Status</th>
+                  <th className="uppercase">Riwayat Patroli</th>
+                  <th className="uppercase">Aksi</th>
                 </tr>
               </thead>
               <tbody>
