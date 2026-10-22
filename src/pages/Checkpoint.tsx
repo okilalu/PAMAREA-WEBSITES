@@ -1,9 +1,11 @@
 import {
   Box,
+  Card,
   CloseCircle,
   LinkSquare,
   Location,
   LocationAdd,
+  Pointer,
   SearchNormal,
   TickCircle,
   UserAdd,
@@ -14,9 +16,11 @@ import {
   useCreatePatrolPoint,
   usePatrolPoints,
 } from "../hooks/patrol-point/usePatrolPoints";
-import { useSites } from "../hooks/site/useSites";
+import { useAuthContext } from "../hooks/auth/useAuthContext";
 
 const Checkpoint = () => {
+  const { user } = useAuthContext();
+  const siteId = user?.siteId;
   const [search, setSearch] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("Semua");
   // const [selectedNfc, setSelectedNfc] = useState("Semua");
@@ -24,17 +28,11 @@ const Checkpoint = () => {
     useCreatePatrolPoint();
 
   const { data: listCheckpoints, isPending, isError } = usePatrolPoints();
-  const {
-    data: sites,
-    isPending: isSitesPending,
-    isError: isSitesError,
-  } = useSites();
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [latitude, setLatitude] = useState<number>(0);
   const [longitude, setLongitude] = useState<number>(0);
-  const [siteId, setSiteId] = useState("");
   const [radiusMeters, setRadiusMeters] = useState<number>(0);
 
   const [registerError, setRegisterError] = useState("");
@@ -52,11 +50,7 @@ const Checkpoint = () => {
     {
       name: "Nonaktif",
     },
-    {
-      name: "Tanpa Tag",
-    },
   ];
-  const site = sites?.data ?? [];
 
   const filteredData = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -100,7 +94,7 @@ const Checkpoint = () => {
     {
       icon: <Location size={17} color="black" />,
       value: listCheckpoints?.length,
-      title: "Titik Terdaftar",
+      title: "Area Register",
       bgColor: "bg-white",
       textColor: "text-black",
     },
@@ -109,7 +103,7 @@ const Checkpoint = () => {
       value: listCheckpoints?.filter((item) =>
         item.nfcAssignments.map((i) => i.status === "ACTIVE"),
       ).length,
-      title: "Tag Terhubung",
+      title: "NFC Active",
       bgColor: "bg-white",
       textColor: "text-black",
     },
@@ -119,7 +113,7 @@ const Checkpoint = () => {
         (item) =>
           item.nfcAssignments.map((i) => i.status === "REMOVED") === null,
       ).length,
-      title: "Butuh Tag",
+      title: "NFC Non Active",
       bgColor: "bg-[#FFDAD6]",
       textColor: "text-[#93000A]",
     },
@@ -145,7 +139,6 @@ const Checkpoint = () => {
     setDescription("");
     setLatitude(0);
     setLongitude(0);
-    setSiteId("");
     setRegisterError("");
   };
 
@@ -162,8 +155,7 @@ const Checkpoint = () => {
       !description ||
       !latitude ||
       !longitude ||
-      !radiusMeters ||
-      !siteId
+      !radiusMeters
     ) {
       setRegisterError("Lengkapi semua field yang wajib diisi.");
       return;
@@ -173,16 +165,15 @@ const Checkpoint = () => {
       return;
     }
 
-    const selectSitesData = site.find((site) => site.id === siteId);
-
-    if (!selectSitesData) {
-      setRegisterError("Role belum ditemukan. Periksa data role dari backend.");
+    if (!siteId) {
+      setRegisterError("Site admin yang sedang login tidak ditemukan.");
       return;
     }
+
     const payload = {
       code: code,
       name: name,
-      description: description,
+      description,
       latitude,
       longitude,
       radiusMeters,
@@ -194,7 +185,7 @@ const Checkpoint = () => {
     try {
       await createCheckpoint(payload);
 
-      setRegisterSuccess("Pengguna berhasil didaftarkan.");
+      setRegisterSuccess("Patrol point  berhasil didaftarkan.");
       resetRegisterForm();
       handleCloseModal();
     } catch (error) {
@@ -255,7 +246,7 @@ const Checkpoint = () => {
             <div className="flex items-center gap-1">
               <div className="bg-[#00529C]  px-1 py-3 h-[1px] rounded-xs" />
               <h1 className="font-bold text-2xl">
-                Manajemen Checkpoint & Aset NFC
+                Setup Area Patrol & Aset NFC
               </h1>
             </div>
             <p className="text-gray-500 text-sm">
@@ -293,7 +284,7 @@ const Checkpoint = () => {
             />
           </label>
 
-          <div className="bg-gray-100 rounded-lg px-4 py-1 grid grid-cols-4 w-[50%] gap-3">
+          <div className="bg-gray-100 rounded-lg px-4 py-1 grid grid-cols-3 w-[50%] gap-3">
             {filterStatus.map((item) => (
               <button
                 key={item.name}
@@ -366,11 +357,11 @@ const Checkpoint = () => {
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <div className="bg-[#ECFDF5] rounded-lg px-2 py-1">
-                          <p className="text-[#059669] text-sm">Aktif</p>
-                        </div>
-                        <div className="bg-[#FFDFDB] rounded-lg px-2 py-1">
-                          <p className="text-[#AA2F36] text-sm">
+                        {/* <div className="bg-[#ECFDF5] rounded-lg px-2 py-1">
+                          <p className="text-[#059669] text-sm">Tidak Aktif</p>
+                        </div> */}
+                        <div className="bg-[#FFDFDB] rounded-lg px-2.5 py-1 animate-pulse">
+                          <p className="text-[#AA2F36] text-sm font-medium">
                             Action Needed
                           </p>
                         </div>
@@ -381,7 +372,7 @@ const Checkpoint = () => {
                   <h1 className="text-xl font-semibold mt-3">{item.name}</h1>
 
                   <div className="flex items-center gap-2">
-                    <p className="text-gray-500">{item.site.name}</p>
+                    <p className="text-gray-500">{item.description}</p>
                     {/* <div className="p-0.5 rounded-full h-[1px] bg-gray-400 mt-1" /> */}
                     {/* <p className="text-red-600">{item.level}</p> */}
                   </div>
@@ -399,19 +390,24 @@ const Checkpoint = () => {
                   </div>
                   {/* <div className=" min-h-[45px]"> */}
                   {item.nfcAssignments.find((i) => i.status) ? (
-                    <div className="flex items-center justify-between mt-5">
-                      <p className="text-sm text-gray-500 font-semibold tracking-wide">
-                        Status Tag NFC :
-                      </p>
-                      <div className="bg-gray-200 px-2 py-2  flex items-center gap-1 rounded-lg">
-                        <TickCircle size={17} color="green" variant="Bulk" />
+                    <div className="grid grid-cols-2 gap-6 items-center mt-5">
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold tracking-wide">
+                          Terhubung ke NFC :
+                        </p>
+                      </div>
+                      <div className="bg-gray-100 px-4 py-2 flex items-center gap-1 rounded-lg">
+                        <TickCircle size={20} color="green" />
                         <p className="font-semibold text-xs tracking-wider">
-                          {item.nfcAssignments.map((i) => i.nfcTagId)}
+                          NFC-
+                          {item.nfcAssignments.map((i) =>
+                            i.nfcTagId.split("", 10),
+                          )}
                         </p>
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between bg-[#FFF0EF] rounded-sm p-2 mt-5">
+                    <div className="flex items-center justify-between bg-[#FFF0EF] border border-rose-200 rounded-lg p-2 mt-5">
                       <p className="text-[#BC1A1A] text-xs tracking-wide">
                         Status Tag NFC :
                       </p>
@@ -425,26 +421,26 @@ const Checkpoint = () => {
                   )}
                   {/* </div> */}
 
-                  {/* <div className="flex items-center justify-evenly gap-2 mt-auto pt-5">
-                <button className="bg-gray-100 rounded-sm py-1 items-center justify-center flex-1 cursor-pointer">
-                  <p>Edit Titik</p>
-                </button>
-                {item.nfcStatus ? (
-                  <button className="flex items-center gap-1 justify-center bg-gray-200 rounded-sm py-1 flex-1 cursor-pointer">
-                    <Card size={17} color="#003B73" />
-                    <p className="text-[#003B73] font-semibold">
-                      Assign NFC Tag
-                    </p>
-                  </button>
-                ) : (
-                  <button className="flex items-center gap-1 justify-center bg-[#FED400] rounded-sm py-1 flex-1 cursor-pointer">
-                    <Pointer size={17} color="#003B73" />
-                    <p className="text-[#003B73] font-semibold">
-                      Assign NFC Tag
-                    </p>
-                  </button>
-                )}
-              </div> */}
+                  <div className="flex items-center justify-evenly gap-2 mt-auto pt-5">
+                    <button className="bg-gray-100 rounded-sm py-1 items-center justify-center flex-1 cursor-pointer">
+                      <p>Edit Titik</p>
+                    </button>
+                    {item.status ? (
+                      <button className="flex items-center gap-1 justify-center bg-gray-200 rounded-sm py-1 flex-1 cursor-pointer">
+                        <Card size={17} color="#003B73" />
+                        <p className="text-[#003B73] font-semibold">
+                          Assign NFC Tag
+                        </p>
+                      </button>
+                    ) : (
+                      <button className="flex items-center gap-1 justify-center bg-[#FED400] rounded-sm py-1 flex-1 cursor-pointer">
+                        <Pointer size={17} color="#003B73" />
+                        <p className="text-[#003B73] font-semibold">
+                          Assign NFC Tag
+                        </p>
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             })
@@ -533,13 +529,13 @@ const Checkpoint = () => {
 
                 <div>
                   <label className="text-sm font-medium text-gray-700">
-                    Description
+                    Sub-Area
                   </label>
 
                   <input
                     type="text"
                     name="description"
-                    placeholder="Enter description patrol point"
+                    placeholder="Enter sub-area name"
                     className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -581,7 +577,7 @@ const Checkpoint = () => {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">
-                    Redius Meter
+                    Radius Meter
                   </label>
 
                   <input
@@ -594,37 +590,6 @@ const Checkpoint = () => {
                     onChange={(e) => setRadiusMeters(Number(e.target.value))}
                     required
                   />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Site
-                  </label>
-
-                  <select
-                    className="select select-bordered w-full mt-1 bg-white border-gray-300 text-sm"
-                    name="site"
-                    value={siteId}
-                    onChange={(e) => setSiteId(e.target.value)}
-                    disabled={
-                      isSitesPending || isSitesError || site.length === 0
-                    }
-                    required
-                  >
-                    <option value="" disabled>
-                      {isSitesPending
-                        ? "Memuat Site..."
-                        : isSitesError
-                          ? "Gagal memuat site"
-                          : site.length === 0
-                            ? "Site tidak tersedia"
-                            : "Pilih Site"}
-                    </option>
-                    {site.map((site) => (
-                      <option key={site.id} value={site.id}>
-                        {site.name}
-                      </option>
-                    ))}
-                  </select>
                 </div>
 
                 {registerError && (
@@ -649,17 +614,21 @@ const Checkpoint = () => {
 
                   <button
                     type="submit"
-                    disabled={isRegitering}
+                    disabled={isRegitering || !siteId}
                     className="bg-[#FACC15] border border-yellow-200 py-3 rounded-sm hover:bg-yellow-500 text-sm font-semibold flex-1 disabled:opacity-50"
                   >
-                    {isRegitering ? (
+                    {/* {isRegitering ? (
                       <>
                         <span className="loading loading-spinner loading-sm" />
                         Menyimpan...
                       </>
                     ) : (
                       "Simpan"
-                    )}
+                    )} */}
+
+                    {isRegitering
+                      ? "Mendaftarkan..."
+                      : "Daftarkan Titik Patroli"}
                   </button>
                 </div>
               </div>

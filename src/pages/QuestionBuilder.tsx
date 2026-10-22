@@ -20,9 +20,9 @@ import { usePatrolPoints } from "../hooks/patrol-point/usePatrolPoints";
 import {
   useActiveQuestions,
   useCreateQuestion,
-  useCreateQuestionOption,
+  // useCreateQuestionOption,
   useDeactivateQuestion,
-  useQuestions,
+  // useQuestions,
 } from "../hooks/question/useQuestions";
 import type {
   CreateQuestionOptionPayload,
@@ -165,27 +165,26 @@ const QuestionBuilder = () => {
   //   });
   // }, [selectedCheckpoint]);
 
-  const { data: questions } = useQuestions();
-  console.log("QUESTION", JSON.stringify(questions, null, 2));
+  // const { data: questions } = useQuestions();
+  console.log("QUESTION", JSON.stringify(activeQuestions, null, 2));
   const { data: checkpoint } = usePatrolPoints();
   const { mutateAsync: questionBuilder, isPending } = useCreateQuestion();
   const { mutateAsync: deactivateQuestion, isPending: isDeactivating } =
     useDeactivateQuestion();
-  const { mutateAsync: createQuestionOption } = useCreateQuestionOption();
+  // const { mutateAsync: createQuestionOption } = useCreateQuestionOption();
 
-  const [code, setCode] = useState("");
+  // const [code, setCode] = useState("");
   const [questionText, setQuestionText] = useState("");
   const [questionType, setQuestionType] = useState<QuestionType>("YES_NO");
   const [isRequired, setIsRequired] = useState<boolean>(true);
   const [photoRequirement, setPhotoRequirement] =
-    useState<PhotoRequirement>("NONE");
+    useState<PhotoRequirement>("REQUIRED");
   const [formError, setFormError] = useState("");
 
   const [options, setOptions] = useState<CreateQuestionOptionPayload[]>([
     {
-      value: "",
       label: "",
-      sortOrder: 1,
+      isSafe: false,
     },
   ]);
 
@@ -267,15 +266,22 @@ const QuestionBuilder = () => {
   // };
 
   const handleQuestionBuilder = async () => {
-    const normalizedCode = code.trim();
     const normalizedQuestion = questionText.trim();
 
-    if (!normalizedCode || !normalizedQuestion) {
-      setFormError("Kode dan teks pertanyaan wajib diisi.");
+    // 1. Validasi teks pertanyaan
+    if (!normalizedQuestion) {
+      setFormError("Teks pertanyaan wajib diisi.");
       return;
     }
 
-    // Validasi khusus SINGLE_CHOICE.
+    // 2. Validasi opsi untuk SINGLE_CHOICE
+    let questionOptions:
+      | {
+          label: string;
+          isSafe: boolean;
+        }[]
+      | undefined;
+
     if (questionType === "SINGLE_CHOICE") {
       if (options.length < 2) {
         setFormError(
@@ -284,76 +290,68 @@ const QuestionBuilder = () => {
         return;
       }
 
-      const hasEmptyOption = options.some(
-        (option) => !option.label.trim() || !option.value.trim(),
-      );
+      questionOptions = options.map((option) => ({
+        label: option.label.trim(),
+        isSafe: option.isSafe,
+      }));
 
-      if (hasEmptyOption) {
-        setFormError("Label dan value semua opsi wajib diisi.");
+      // Validasi label kosong
+      if (questionOptions.some((option) => !option.label)) {
+        setFormError("Label semua opsi wajib diisi.");
         return;
       }
 
-      const normalizedValues = options.map((option) =>
-        option.value.trim().toLowerCase(),
+      // Validasi label duplikat
+      const normalizedLabels = questionOptions.map((option) =>
+        option.label.toLowerCase(),
       );
 
-      if (new Set(normalizedValues).size !== normalizedValues.length) {
-        setFormError("Value setiap opsi harus unik.");
+      if (new Set(normalizedLabels).size !== normalizedLabels.length) {
+        setFormError("Label opsi tidak boleh duplikat.");
         return;
       }
     }
 
     setFormError("");
 
+    // 3. Susun payload sesuai CreateQuestionDto
+    const payload = {
+      questionText: normalizedQuestion,
+      questionType,
+      isRequired,
+      photoRequirement,
+      ...(questionType === "SINGLE_CHOICE" && {
+        questionOptions,
+      }),
+    };
+
     try {
-      // 1. Buat pertanyaan terlebih dahulu.
-      const createdQuestion = await questionBuilder({
-        code: normalizedCode,
-        questionText: normalizedQuestion,
-        questionType,
-        isRequired,
-        photoRequirement,
-      });
+      const createdQuestion = await questionBuilder(payload);
 
-      // 2. Buat opsi hanya untuk SINGLE_CHOICE.
-      if (questionType === "SINGLE_CHOICE") {
-        await Promise.all(
-          options.map((option, index) =>
-            createQuestionOption({
-              questionId: createdQuestion.id,
-              payload: {
-                value: option.value.trim(),
-                label: option.label.trim(),
-                sortOrder: index + 1,
-              },
-            }),
-          ),
-        );
-      }
+      console.log("Pertanyaan berhasil dibuat:", createdQuestion);
 
-      // 3. Reset form setelah seluruh request berhasil.
-      setCode("");
       setQuestionText("");
       setQuestionType("YES_NO");
       setIsRequired(true);
-      setPhotoRequirement("NONE");
+      setPhotoRequirement("REQUIRED");
 
       setOptions([
         {
-          value: "",
           label: "",
-          sortOrder: 1,
+          isSafe: false,
         },
       ]);
 
       setFormError("");
 
+      console.log("PAYLOAD", JSON.stringify(createdQuestion, null, 2));
+
       handleCloseModal();
     } catch (error) {
-      console.error("Gagal membuat pertanyaan atau opsi:", error);
+      console.error("Gagal membuat pertanyaan:", error);
 
       setFormError(
-        "Pertanyaan atau opsi gagal disimpan. Periksa kembali data dan coba lagi.",
+        "Pertanyaan gagal disimpan. Periksa kembali data dan coba lagi.",
       );
     }
   };
@@ -362,28 +360,20 @@ const QuestionBuilder = () => {
     setOptions((prev) => [
       ...prev,
       {
-        value: "",
         label: "",
-        sortOrder: prev.length + 1,
+        isSafe: false,
       },
     ]);
   };
 
   const handleRemoveOption = (index: number) => {
-    setOptions((prev) =>
-      prev
-        .filter((_, i) => i !== index)
-        .map((option, i) => ({
-          ...option,
-          sortOrder: i + 1,
-        })),
-    );
+    setOptions((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleOptionChange = (
     index: number,
-    field: "value" | "label",
-    value: string,
+    field: "label" | "isSafe",
+    value: string | boolean,
   ) => {
     setOptions((prev) =>
       prev.map((option, i) =>
@@ -445,7 +435,7 @@ const QuestionBuilder = () => {
             <div className="flex items-center gap-1">
               <div className="bg-[#00529C]  px-1 py-3 h-[1px] rounded-xs" />
               <p className="font-bold text-2xl tracking-wide">
-                Checkpoint Inspection & K3 Question Builder
+                Inspection & Question Builder
               </p>
             </div>
             <p className="text-sm text-gray-600">
@@ -515,7 +505,7 @@ const QuestionBuilder = () => {
 
             {/* --- BODY --- */}
             <div className="mt-6 space-y-6">
-              <div>
+              {/* <div>
                 <label
                   htmlFor="code_text"
                   className="block text-sm font-semibold text-gray-800 mb-1.5"
@@ -529,7 +519,7 @@ const QuestionBuilder = () => {
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                 />
-              </div>
+              </div> */}
               {/* 1. Pertanyaan Inspeksi */}
               <div>
                 <label
@@ -653,13 +643,16 @@ const QuestionBuilder = () => {
                         </div>
 
                         {/* Input opsi */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 min-w-0">
+
+                        <div className="grid grid-cols-1 sm:grid-cols-[1fr_160px] gap-4 flex-1 min-w-0">
+                          {/* Label Opsi */}
                           <div>
                             <label
                               htmlFor={`option-label-${index}`}
-                              className="block text-xs font-semibold text-gray-700 mb-1.5"
+                              className="block text-xs font-semibold text-gray-700 mb-2"
                             >
                               Label Opsi
+                              <span className="text-red-500 ml-1">*</span>
                             </label>
 
                             <input
@@ -674,32 +667,51 @@ const QuestionBuilder = () => {
                                 )
                               }
                               placeholder="Contoh: Normal"
-                              className="w-full border border-gray-300 rounded-lg bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="w-full h-10 border border-gray-300 rounded-lg bg-white px-3 text-sm text-gray-700 placeholder:text-gray-400 transition-all focus:outline-none focus:border-[#00529C] focus:ring-2 focus:ring-[#00529C]/10"
                             />
                           </div>
 
+                          {/* Opsi Aman */}
                           <div>
                             <label
-                              htmlFor={`option-value-${index}`}
-                              className="block text-xs font-semibold text-gray-700 mb-1.5"
+                              className="block text-xs font-semibold text-gray-700 mb-2"
+                              htmlFor={`option-safe-${index}`}
                             >
-                              Value Opsi
+                              Status Opsi
                             </label>
 
-                            <input
-                              id={`option-value-${index}`}
-                              type="text"
-                              value={option.value}
-                              onChange={(e) =>
-                                handleOptionChange(
-                                  index,
-                                  "value",
-                                  e.target.value,
-                                )
-                              }
-                              placeholder="Contoh: NORMAL"
-                              className="w-full border border-gray-300 rounded-lg bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
+                            <label
+                              htmlFor={`option-safe-${index}`}
+                              className={`flex items-center gap-3 h-10 px-3 rounded-lg border cursor-pointer transition-all ${
+                                option.isSafe
+                                  ? "bg-emerald-50 border-emerald-300"
+                                  : "bg-gray-50 border-gray-200 hover:border-gray-300"
+                              }`}
+                            >
+                              <input
+                                id={`option-safe-${index}`}
+                                type="checkbox"
+                                checked={option.isSafe}
+                                onChange={(e) =>
+                                  handleOptionChange(
+                                    index,
+                                    "isSafe",
+                                    e.target.checked,
+                                  )
+                                }
+                                className="checkbox checkbox-sm rounded border-gray-300 [--chkbg:#00529C] [--chkfg:white] checked:border-[#00529C]"
+                              />
+
+                              <span
+                                className={`text-xs font-semibold ${
+                                  option.isSafe
+                                    ? "text-emerald-700"
+                                    : "text-gray-500"
+                                }`}
+                              >
+                                {option.isSafe ? "Aman" : "Tidak aman"}
+                              </span>
+                            </label>
                           </div>
                         </div>
 
@@ -732,8 +744,7 @@ const QuestionBuilder = () => {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white">
-                {/* 3. Persyaratan Foto */}
+              {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white">
                 <div>
                   <p className="block text-sm font-semibold text-gray-800 mb-3">
                     3. Persyaratan Foto Bukti
@@ -774,39 +785,7 @@ const QuestionBuilder = () => {
                     ))}
                   </div>
                 </div>
-
-                {/* 4. Persyaratan Catatan (Diperbaiki dari duplikat sebelumnya) */}
-                {/* <div>
-                  <p className="block text-sm font-semibold text-gray-800 mb-3">
-                    4. Persyaratan Catatan Tambahan
-                  </p>
-                  <div className="space-y-2.5">
-                    <label className="flex items-center gap-3 cursor-pointer group">
-                      <input
-                        type="radio"
-                        name="note_req"
-                        value="required"
-                        className="radio radio-primary radio-sm"
-                      />
-                      <span className="text-sm text-gray-600 group-hover:text-gray-900 font-medium">
-                        REQUIRED (Wajib Diisi)
-                      </span>
-                    </label>
-                    <label className="flex items-center gap-3 cursor-pointer group">
-                      <input
-                        type="radio"
-                        name="note_req"
-                        value="none"
-                        className="radio radio-primary radio-sm"
-                        defaultChecked
-                      />
-                      <span className="text-sm text-gray-600 group-hover:text-gray-900 font-medium">
-                        OPSIONAL (Tidak Wajib)
-                      </span>
-                    </label>
-                  </div>
-                </div> */}
-              </div>
+              </div> */}
             </div>
 
             {/* --- FOOTER --- */}
@@ -1053,9 +1032,9 @@ const QuestionBuilder = () => {
                           </p>
                         </div>
                         <div className="flex items-center">
-                          <p className="text-xs text-gray-500">Kategori :</p>
+                          <p className="text-xs text-gray-500">Butuh Foto :</p>
                           <p className="text-xs text-gray-500 font-semibold ml-1">
-                            {item._count?.pointQuestions}
+                            {item.photoRequirement}
                           </p>
                         </div>
                       </div>
