@@ -122,7 +122,7 @@ export default function MapsCheckpoint({
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-4 py-3">
           <div>
             <h2 className="text-base font-semibold text-gray-800">
-              Peta Checkpoint Patroli
+              Peta Patroli
             </h2>
 
             <p className="mt-1 text-sm text-gray-500">
@@ -189,7 +189,7 @@ export default function MapsCheckpoint({
       {/* CHECKPOINT LIST */}
       <aside className="overflow-hidden rounded-xl border border-gray-200 bg-white">
         <div className="border-b border-gray-200 p-4">
-          <h3 className="font-semibold text-gray-800">Daftar Checkpoint</h3>
+          <h3 className="font-semibold text-gray-800">Daftar Area</h3>
 
           <p className="mt-1 text-sm text-gray-500">
             Pilih lokasi untuk melihat posisinya.
