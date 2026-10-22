@@ -31,11 +31,9 @@ export interface ScheduleAssignmentDetailResponse extends PatrolScheduleAssignme
 }
 
 export interface CreateScheduleAssignmentPayload {
-  // scheduleId: string;
   userId: string;
   startDate: string;
   endDate?: string | null;
-  // status?: ScheduleAssignmentStatus;
 }
 
 export interface BulkScheduleAssignmentItem {

@@ -35,7 +35,7 @@ export interface QuestionCount {
 
 // Payload untuk membuat pertanyaan
 export interface CreateQuestionPayload {
-  code: string;
+  code?: string;
   questionText: string;
 
   questionType: QuestionType;

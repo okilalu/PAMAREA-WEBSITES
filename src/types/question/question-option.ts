@@ -9,9 +9,10 @@ export interface QuestionOption {
 }
 
 export interface CreateQuestionOptionPayload {
-  value: string;
+  // value: string;
   label: string;
-  sortOrder: number;
+  isSafe: boolean;
+  // sortOrder: number;
 }
 
 export interface UpdateQuestionOptionPayload {

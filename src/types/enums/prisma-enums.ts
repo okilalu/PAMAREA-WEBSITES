@@ -1,6 +1,10 @@
 // src/types/enums/prisma-enums.types.ts
 
-export type RoleName = "ADMIN" | "SECURITY";
+export type RoleName =
+  | "ADMIN"
+  | "SECURITY"
+  | "DANRU_SECURITY"
+  | "CHIEF_SECURITY";
 
 export type UserStatus = "ACTIVE" | "INACTIVE";
 

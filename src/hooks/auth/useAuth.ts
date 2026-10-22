@@ -50,7 +50,7 @@ export const useLogin = () => {
         queryKey: authKeys.me(),
       });
     },
-    onError(error, variables, onMutateResult, context) {
+    onError(error) {
       console.log(error);
     },
   });
