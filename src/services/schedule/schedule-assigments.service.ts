@@ -14,7 +14,7 @@ export const createScheduleAssignment = async (
   payload: CreateScheduleAssignmentPayload,
 ): Promise<PatrolScheduleAssignment> => {
   const response = await apiClient.post<PatrolScheduleAssignment>(
-    `/patrol-schedules/${scheduleId}/assignments/assign`,
+    `/patrol-schedule-assignments/schedules/${scheduleId}/assign`,
     payload,
   );
 
@@ -27,7 +27,7 @@ export const bulkAssignUser = async (
   payload: BulkAssignUserPayload,
 ): Promise<BulkAssignUserResponse> => {
   const response = await apiClient.post<BulkAssignUserResponse>(
-    `/patrol-schedules/${scheduleId}/assignments/assignments/bulk`,
+    `/patrol-schedule-assignments/schedules/${scheduleId}/bulk`,
     payload,
   );
 
@@ -35,11 +35,21 @@ export const bulkAssignUser = async (
 };
 
 // Mengambil seluruh assignment dalam schedule
-export const getScheduleAssignments = async (
+export const getScheduleAssignment = async (
   scheduleId: string,
 ): Promise<PatrolScheduleAssignment[]> => {
   const response = await apiClient.get<PatrolScheduleAssignment[]>(
-    `/patrol-schedules/${scheduleId}/assignments`,
+    `/patrol-schedule-assignments/${scheduleId}`,
+  );
+
+  return response.data;
+};
+
+export const getScheduleAssignments = async (): Promise<
+  PatrolScheduleAssignment[]
+> => {
+  const response = await apiClient.get<PatrolScheduleAssignment[]>(
+    `/patrol-schedule-assignments`,
   );
 
   return response.data;
@@ -51,7 +61,7 @@ export const deleteScheduleAssignment = async (
   assignmentId: string,
 ): Promise<DeleteScheduleAssignmentResponse> => {
   const response = await apiClient.delete<DeleteScheduleAssignmentResponse>(
-    `/patrol-schedules/${scheduleId}/assignments/${assignmentId}`,
+    `/patrol-schedule-assignments/schedules/${scheduleId}/${assignmentId}`,
   );
 
   return response.data;
