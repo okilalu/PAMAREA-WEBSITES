@@ -4,27 +4,48 @@ import AuthForm from "./AuthForm";
 import Sidebar from "../components/sidebar/SideBar";
 import ProtectedRoute from "../routes/ProtectedRoute";
 
+import { AuthProvider } from "../contexts/AuthProvider";
+import { useMe } from "../hooks/auth/useAuth";
+import { ScheduleProvider } from "../contexts/ScheduleProvider";
+
 export default function AuthPage() {
   const isAuthenticated = Boolean(localStorage.getItem("accessToken"));
 
   return (
     <Routes>
-      {/* Halaman login */}
       <Route
         path="/login"
         element={isAuthenticated ? <Navigate to="/" replace /> : <AuthForm />}
       />
 
-      {/* Halaman utama yang memerlukan autentikasi */}
       <Route element={<ProtectedRoute />}>
-        <Route path="/" element={<Sidebar />} />
+        <Route path="/" element={<AuthenticatedPage />} />
       </Route>
 
-      {/* Route yang tidak dikenal */}
       <Route
         path="*"
         element={<Navigate to={isAuthenticated ? "/" : "/login"} replace />}
       />
     </Routes>
+  );
+}
+
+function AuthenticatedPage() {
+  const { data, isPending, isError } = useMe();
+
+  if (isPending) {
+    return <div>Memuat data pengguna...</div>;
+  }
+
+  if (isError || !data) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
+    <AuthProvider user={data.data}>
+      <ScheduleProvider>
+        <Sidebar />
+      </ScheduleProvider>
+    </AuthProvider>
   );
 }

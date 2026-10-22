@@ -31,10 +31,8 @@ export default function AuthPage() {
       onSuccess: (response) => {
         console.log("Login berhasil:", response);
 
-        // Ambil token dari respons backend
         const { accessToken, refreshToken } = response.data;
 
-        // Simpan token ke localStorage
         localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("refreshToken", refreshToken);
 
@@ -43,7 +41,6 @@ export default function AuthPage() {
           Boolean(localStorage.getItem("accessToken")),
         );
 
-        // Arahkan pengguna ke dashboard
         navigate("/", { replace: true });
       },
 
@@ -123,7 +120,7 @@ export default function AuthPage() {
                 <p className="text-sm font-bold text-white">PAMAREA</p>
 
                 <p className="mt-1 text-xs text-blue-100/80">
-                  Sistem Manajemen Patroli Keamanan
+                  Patroli dan Monitoring Keamanan Area
                 </p>
               </div>
             </div>
