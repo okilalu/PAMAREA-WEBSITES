@@ -6,9 +6,11 @@ import {
   ArrowSwapHorizontal,
   BoxTime,
   Calendar,
+  CalendarAdd,
   People,
   Send,
   UserSquare,
+  // UserTag,
 } from "iconsax-react";
 import React, { useState } from "react";
 import {
@@ -21,6 +23,7 @@ import {
 import { useAuthContext } from "../hooks/auth/useAuthContext";
 import type {
   AddScheduleAssignmentPayload,
+  BulkAssignUserPayload,
   CreatePatrolSchedulePayload,
   CreateScheduleAssignmentPayload,
   CreateScheduleDatesPayload,
@@ -30,10 +33,13 @@ import { usePatrolPoints } from "../hooks/patrol-point/usePatrolPoints";
 import { useSecurityUsers } from "../hooks/users/useUsers";
 import { useCreatePatrolScheduleDates } from "../hooks/schedule/useScheduleDates";
 import {
+  useBulkAssignUser,
   useCreateScheduleAssigment,
   useGetScheduleAssigments,
 } from "../hooks/schedule/usePatrolScheduleAssignment";
 import { useScheduleContext } from "../hooks/schedule/useScheduleContext";
+import type { ShiftChange } from "../types/schedule/shift-change";
+import { useChangeShift } from "../hooks/schedule/useShiftChange";
 
 const ScheduleManage = () => {
   const { user } = useAuthContext();
@@ -65,7 +71,8 @@ const ScheduleManage = () => {
   );
 
   const assignment = scheduleAssigment ?? [];
-  console.log("DATA", JSON.stringify(roster, null, 2));
+  console.log("Roster", JSON.stringify(roster, null, 2));
+  // console.log("Schedule Assignment", JSON.stringify(assignment, null, 2));
 
   const { mutateAsync: createPS } = useCreatePatrolSchedule();
   const { mutateAsync: createDates } = useCreatePatrolScheduleDates();
@@ -74,6 +81,10 @@ const ScheduleManage = () => {
   const { mutate: activateSchedule, isPending: isActivating } =
     usePatrolScheduleActivate();
   const { mutateAsync: assignUser } = useCreateScheduleAssigment();
+  const { mutateAsync: shiftChange, isPending: isChangingShift } =
+    useChangeShift();
+  const { mutateAsync: bulkUser, isPending: isBulkAssigning } =
+    useBulkAssignUser();
 
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [createdScheduleId, setCreatedScheduleId] = useState<string | null>(
@@ -96,11 +107,23 @@ const ScheduleManage = () => {
   const [dates, setDates] = useState<string[]>([]);
 
   const [selectedUserId, setSelectedUserId] = useState("");
+  const [selectedScheduleIds, setSelectedScheduleIds] = useState<string[]>([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
+  const [firstAssignmentId, setFirstAssignmentId] = useState("");
+  const [secondAssignmentId, setSecondAssignmentId] = useState("");
+  const [effectiveDate, setEffectiveDate] = useState("");
+  const [reason, setReason] = useState("");
+  // const [selectedSecurity, setSelectedSecurity] = useState("");
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedShift, setSelectedShift] = useState("Pilih Shift");
+  const [search, setSearch] = useState({
+    security: "",
+    secondSecurity: "",
+    singleSecurity: "",
+  });
 
   const monthLabel = new Date(
     rosterYear,
@@ -110,6 +133,28 @@ const ScheduleManage = () => {
     month: "long",
     year: "numeric",
   });
+
+  const toggleScheduleSelection = (scheduleId: string) => {
+    setSelectedScheduleIds((prev) =>
+      prev.includes(scheduleId)
+        ? prev.filter((id) => id !== scheduleId)
+        : [...prev, scheduleId],
+    );
+  };
+
+  const toggleAllSchedules = () => {
+    const scheduleIds = (activeSchedule ?? []).map((item) => item.id);
+
+    const allSelected =
+      scheduleIds.length > 0 &&
+      scheduleIds.every((id) => selectedScheduleIds.includes(id));
+
+    setSelectedScheduleIds((prev) =>
+      allSelected
+        ? prev.filter((id) => !scheduleIds.includes(id))
+        : [...new Set([...prev, ...scheduleIds])],
+    );
+  };
 
   const activePatrolPoints =
     patrolPoint?.filter((point) => point.status === "ACTIVE") ?? [];
@@ -125,8 +170,53 @@ const ScheduleManage = () => {
 
   // console.log("Draft Schedule", JSON.stringify(activeSecurity, null, 2));
 
+  const searchSecurity = activeSecurity.filter((item) => {
+    const searchSecurity = search.singleSecurity.toLowerCase();
+    const matchSecurity = item.fullName.toLowerCase().includes(searchSecurity);
+
+    return matchSecurity;
+  });
+
   const filteredData =
     selectedStatus === "ACTIVE" ? activeSchedule : draftSchedule;
+
+  const getSecurityOptions = (
+    keyword: string,
+    selectedId: string,
+    excludedId: string,
+  ) => {
+    const normalizedKeyword = keyword.trim().toLowerCase();
+
+    const filtered = (activeSecurity ?? []).filter(
+      (item) =>
+        item.status === "ACTIVE" &&
+        item.id !== excludedId &&
+        item.fullName.toLowerCase().includes(normalizedKeyword),
+    );
+
+    const selected = filtered.find((item) => item.id === selectedId);
+
+    const others = filtered.filter((item) => item.id !== selectedId);
+
+    return selected
+      ? [selected, ...others.filter((item) => item.id !== selected.id)].slice(
+          0,
+          2,
+        )
+      : others.slice(0, 2);
+  };
+
+  const firstSecurityOptions = getSecurityOptions(
+    search.security,
+    firstAssignmentId,
+    secondAssignmentId,
+  );
+
+  const secondSecurityOptions = getSecurityOptions(
+    search.secondSecurity,
+    secondAssignmentId,
+    firstAssignmentId,
+  );
 
   const daftarNamaHari = ["MIN", "SEN", "SEL", "RAB", "KAM", "JUM", "SAB"];
 
@@ -137,17 +227,14 @@ const ScheduleManage = () => {
       style: "bg-blue-100 text-blue-700 border-blue-200",
     },
     S: {
-      label: "[S] Siang",
+      label: "[S] Siang/Sore",
       style: "bg-orange-100 text-orange-700 border-orange-200",
     },
     M: {
       label: "[M] Malam",
       style: "bg-indigo-100 text-indigo-700 border-indigo-200",
     },
-    L: {
-      label: "[L] Libur",
-      style: "bg-red-100 text-red-700 border-red-200",
-    },
+    L: { label: "[L] Libur", style: "bg-red-100 text-red-700 border-red-200" },
     "!": {
       label: "[!] Konflik Jadwal",
       style: "bg-red-200 text-red-900 border-red-400",
@@ -158,22 +245,24 @@ const ScheduleManage = () => {
     },
   };
 
+  const jumlahHariDalamBulan = new Date(rosterYear, rosterMonth, 0).getDate();
+
   // Kalender dinamis berdasarkan bulan dan tahun yang dipilih
   const kalenderBulanIni = Array.from(
-    {
-      length: new Date(rosterYear, rosterMonth, 0).getDate(),
-    },
+    { length: jumlahHariDalamBulan },
     (_, i) => {
       const tgl = i + 1;
-
       const tanggal = new Date(rosterYear, rosterMonth - 1, tgl);
-
       const indexHari = tanggal.getDay();
-
       return {
         tgl,
         hari: daftarNamaHari[indexHari],
         isLibur: indexHari === 0,
+        dateKey: [
+          rosterYear,
+          String(rosterMonth).padStart(2, "0"),
+          String(tgl).padStart(2, "0"),
+        ].join("-"),
       };
     },
   );
@@ -202,6 +291,16 @@ const ScheduleManage = () => {
     const modal = document.getElementById(
       "patrol_schedules",
     ) as HTMLDialogElement;
+    modal.showModal();
+  };
+  const handelOpenModalII = () => {
+    const modal = document.getElementById(
+      "patrol_schedules_assignment",
+    ) as HTMLDialogElement;
+    modal.showModal();
+  };
+  const handelOpenModalShiftChange = () => {
+    const modal = document.getElementById("shift_changes") as HTMLDialogElement;
     modal.showModal();
   };
 
@@ -463,9 +562,134 @@ const ScheduleManage = () => {
       setStartDate("");
       setEndDate("");
       setSelectedUserId("");
+      alert("Success create data");
       console.log("Berhasil create data", result);
     } catch (error) {
       console.log("Gagal saat assign user", error);
+    }
+  };
+
+  const handleShiftChange = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    // Validasi pilihan satpam
+    if (!firstAssignmentId || !secondAssignmentId) {
+      console.error("Silakan pilih kedua satpam terlebih dahulu.");
+      return;
+    }
+
+    // Pastikan tidak memilih assignment yang sama
+    if (firstAssignmentId === secondAssignmentId) {
+      console.error("Satpam pertama dan kedua tidak boleh sama.");
+      return;
+    }
+
+    // Validasi tanggal pertukaran
+    if (!effectiveDate) {
+      console.error("Tanggal pertukaran shift wajib diisi.");
+      return;
+    }
+
+    // Validasi kedua assignment tersedia dan aktif
+    const firstAssignment = activeSecurity?.find(
+      (item) => item.id === firstAssignmentId,
+    );
+
+    const secondAssignment = activeSecurity?.find(
+      (item) => item.id === secondAssignmentId,
+    );
+
+    if (!firstAssignment || !secondAssignment) {
+      console.error("Data assignment satpam tidak ditemukan.");
+      return;
+    }
+
+    if (
+      firstAssignment.status !== "ACTIVE" ||
+      secondAssignment.status !== "ACTIVE"
+    ) {
+      console.error("Kedua assignment harus berstatus ACTIVE.");
+      return;
+    }
+
+    // Payload menggunakan ID dari patrolScheduleAssignment
+    const payload: ShiftChange = {
+      firstAssignmentId: firstAssignment.id,
+      secondAssignmentId: secondAssignment.id,
+      effectiveDate,
+      reason: reason.trim() || undefined,
+    };
+
+    try {
+      await shiftChange(payload);
+
+      console.log("Pertukaran shift berhasil diajukan.");
+
+      // Reset form setelah berhasil
+      setFirstAssignmentId("");
+      setSecondAssignmentId("");
+      setEffectiveDate("");
+      setReason("");
+
+      (
+        document.getElementById("shift_changes") as HTMLDialogElement | null
+      )?.close();
+    } catch (error) {
+      console.error("Gagal melakukan pertukaran shift:", error);
+      alert("gagal melakukan pertukaran shift");
+    }
+  };
+
+  const handleBulkAssign = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!selectedUserId) {
+      alert("Silakan pilih satpam terlebih dahulu.");
+      return;
+    }
+
+    if (selectedScheduleIds.length === 0) {
+      alert("Pilih minimal satu jadwal shift.");
+      return;
+    }
+
+    if (!startDate || !endDate) {
+      alert("Tanggal mulai dan tanggal selesai wajib diisi.");
+      return;
+    }
+
+    if (endDate < startDate) {
+      alert("Tanggal selesai tidak boleh sebelum tanggal mulai.");
+      return;
+    }
+
+    const payload: BulkAssignUserPayload = {
+      userId: selectedUserId,
+      assignments: selectedScheduleIds.map((scheduleId) => ({
+        scheduleId,
+        startDate,
+        endDate,
+      })),
+    };
+
+    try {
+      await bulkUser(payload);
+
+      console.log("Penugasan beberapa shift berhasil disimpan.");
+
+      setSelectedUserId("");
+      setSelectedScheduleIds([]);
+      setStartDate("");
+      setEndDate("");
+
+      (
+        document.getElementById(
+          "patrol_schedules_assignment",
+        ) as HTMLDialogElement | null
+      )?.close();
+    } catch (error) {
+      console.error("Gagal menyimpan bulk assignment:", error);
+      alert("Gagal menyimpan penugasan shift.");
     }
   };
 
@@ -535,7 +759,10 @@ const ScheduleManage = () => {
               </div>
             </div>
 
-            <button className="flex lg:items-center gap-1 bg-[#FED400] rounded-lg px-4 py-2 cursor-pointer">
+            <button
+              onClick={handelOpenModalII}
+              className="flex lg:items-center gap-1 bg-[#FED400] rounded-lg px-4 py-2 cursor-pointer"
+            >
               <AddCircle size={15} color="black" />
               <p className="font-semibold text-sm">Buat Jadwal / Roster</p>
             </button>
@@ -546,6 +773,75 @@ const ScheduleManage = () => {
             >
               <AddCircle size={15} color="black" />
             </button>
+          </div>
+        </div>
+
+        {/* SUMMARY CARDS */}
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-500">
+                  Jadwal Aktif
+                </p>
+
+                <h2 className="mt-2 text-3xl font-bold text-slate-900">
+                  {activeSchedule.length}
+                </h2>
+
+                <p className="mt-1 text-xs text-slate-500">
+                  Jadwal yang sedang berjalan
+                </p>
+              </div>
+
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                <BoxTime size={23} color="green" />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-500">
+                  Jadwal Draft
+                </p>
+
+                <h2 className="mt-2 text-3xl font-bold text-slate-900">
+                  {draftSchedule.length}
+                </h2>
+
+                <p className="mt-1 text-xs text-slate-500">
+                  Jadwal yang belum diaktifkan
+                </p>
+              </div>
+
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                <Calendar size={23} color="orange" />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:col-span-2 xl:col-span-1">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-slate-500">
+                  Petugas Keamanan
+                </p>
+
+                <h2 className="mt-2 text-3xl font-bold text-slate-900">
+                  {activeSecurity.length}
+                </h2>
+
+                <p className="mt-1 text-xs text-slate-500">
+                  Petugas dengan status aktif
+                </p>
+              </div>
+
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#003B73]">
+                <People size={23} color="blue" />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -592,7 +888,7 @@ const ScheduleManage = () => {
             </div>
 
             {/* SHIFT LIST */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               {filteredData.map((s, index) => {
                 const isActive = s.status === "ACTIVE";
 
@@ -601,134 +897,133 @@ const ScheduleManage = () => {
                   .map((item) => item.user)
                   .filter((user) => user != null);
 
+                // Tampilkan maksimal 4 petugas di card.
+                const visibleUsers = assignedUsers.slice(0, 4);
+                const remainingUsers =
+                  assignedUsers.length - visibleUsers.length;
+
                 return (
                   <div
                     key={s.id}
-                    className={`overflow-hidden rounded-xl border bg-white transition-all duration-200 ${
-                      isActive
-                        ? "border-blue-200 shadow-sm"
-                        : "border-gray-200 shadow-none"
+                    className={`overflow-hidden rounded-xl border bg-white transition-all duration-200 hover:shadow-sm ${
+                      isActive ? "border-emerald-200" : "border-gray-200"
                     }`}
                   >
                     {/* SHIFT HEADER */}
-                    <div className="flex items-center justify-between p-4">
-                      <div className="flex items-center">
+                    <div className="flex items-center justify-between gap-3 px-4 py-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        {/* Nomor Shift */}
                         <div
-                          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
-                            isActive ? "bg-[#00529C]" : "bg-gray-100"
+                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                            isActive
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-blue-50 text-[#003B73]"
                           }`}
                         >
-                          <span
-                            className={`text-sm font-bold ${
-                              isActive ? "text-white" : "text-gray-500"
-                            }`}
-                          >
+                          <span className="text-sm font-bold">
                             {String(index + 1).padStart(2, "0")}
                           </span>
                         </div>
 
-                        <div className="ml-3">
+                        {/* Informasi Shift */}
+                        <div className="min-w-0">
                           <h3 className="truncate text-sm font-bold text-gray-800">
                             {s.name}
                           </h3>
 
-                          <p className="mt-1 text-xs font-medium text-gray-500">
-                            {s.startTime} - {s.endTime} WITA
-                          </p>
+                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                            <span className="text-xs font-medium text-gray-500">
+                              {s.startTime} – {s.endTime} WITA
+                            </span>
+
+                            <span className="text-gray-300">•</span>
+
+                            <span
+                              className={`inline-flex items-center gap-1 text-[11px] font-semibold ${
+                                isActive ? "text-emerald-700" : "text-amber-600"
+                              }`}
+                            >
+                              <span
+                                className={`h-1.5 w-1.5 rounded-full ${
+                                  isActive ? "bg-emerald-500" : "bg-amber-400"
+                                }`}
+                              />
+                              {isActive ? "Aktif" : "Draft"}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-4">
-                        <span
-                          className={`inline-flex rounded-md px-3 py-1 text-[10px] font-bold ${
-                            isActive
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-amber-100 text-amber-700"
-                          }`}
-                        >
-                          {isActive ? "ACTIVE" : "DRAFT"}
-                        </span>
-
-                        {!isActive && (
+                      {/* AKSI */}
+                      <div className="flex shrink-0 items-center gap-2">
+                        {isActive ? (
+                          <span className="hidden rounded-lg bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 sm:inline-flex">
+                            Schedule Aktif
+                          </span>
+                        ) : (
                           <button
                             type="button"
                             onClick={() => handleActivateSchedule(s.id)}
                             disabled={isActivating}
-                            className="cursor-pointer rounded-sm bg-[#003B73] px-4 py-2 transition-colors hover:bg-[#00529C] disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex items-center justify-center rounded-lg bg-[#003B73] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#00529C] disabled:cursor-not-allowed disabled:opacity-50"
                           >
-                            <p className="text-xs font-semibold text-white">
-                              {isActivating ? "Mengaktifkan..." : "Aktifkan"}
-                            </p>
+                            {isActivating ? "Mengaktifkan..." : "Aktifkan"}
                           </button>
                         )}
                       </div>
                     </div>
 
-                    {/* ASSIGNED USERS */}
-                    <div className="border-t border-gray-100 px-4 py-3">
-                      <div className="mb-3 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <People size={17} color="#64748B" />
-
-                          <span className="text-xs font-semibold text-gray-700">
-                            Petugas Bertugas
-                          </span>
-
-                          <span className="rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-[#00529C]">
-                            {assignedUsers.length}
-                          </span>
+                    {/* PETUGAS: COMPACT HORIZONTAL */}
+                    <div className="flex items-center justify-between gap-3 border-t border-gray-100 bg-gray-50/60 px-4 py-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-gray-500 ring-1 ring-gray-200">
+                          <People size={16} color="#64748B" />
                         </div>
 
-                        <span className="text-[11px] text-gray-400">
-                          {assignedUsers.length > 0
-                            ? "Petugas terdaftar"
-                            : "Belum ada petugas"}
-                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-gray-700">
+                            Petugas Bertugas
+                          </p>
+                          <p className="mt-0.5 text-[11px] text-gray-500">
+                            {assignedUsers.length > 0
+                              ? `${assignedUsers.length} petugas ditugaskan`
+                              : "Belum ada petugas"}
+                          </p>
+                        </div>
                       </div>
 
                       {assignedUsers.length > 0 ? (
-                        <div className="space-y-2">
-                          {assignedUsers.map((user) => (
-                            <div
-                              key={user.id}
-                              className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50/70 px-3 py-2.5"
-                            >
-                              <div className="flex min-w-0 items-center gap-3">
-                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold uppercase text-[#00529C]">
-                                  {user.fullName?.charAt(0) ?? "P"}
-                                </div>
-
-                                <div className="min-w-0">
-                                  <p className="truncate text-xs font-semibold text-gray-800">
-                                    {user.fullName}
-                                  </p>
-
-                                  <p className="mt-0.5 text-[11px] text-gray-500">
-                                    {user.username ?? "Petugas keamanan"}
-                                  </p>
-                                </div>
+                        <div className="flex shrink-0 items-center">
+                          {/* Avatar Petugas */}
+                          <div className="flex items-center -space-x-2">
+                            {visibleUsers.map((user) => (
+                              <div
+                                key={user.id}
+                                title={`${user.fullName ?? "Petugas"}${user.username ? ` (${user.username})` : ""}`}
+                                className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-blue-100 text-[10px] font-bold uppercase text-[#003B73]"
+                              >
+                                {(user.fullName ?? "P").trim().charAt(0) || "P"}
                               </div>
+                            ))}
 
-                              <span className="ml-2 shrink-0 rounded-md bg-emerald-50 px-2 py-1 text-[10px] font-medium text-emerald-700">
-                                Assigned
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50/70 px-4 py-5 text-center">
-                          <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100">
-                            <People size={18} color="#9CA3AF" />
+                            {remainingUsers > 0 && (
+                              <div
+                                title={`${remainingUsers} petugas lainnya`}
+                                className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-gray-200 text-[10px] font-bold text-gray-600"
+                              >
+                                +{remainingUsers}
+                              </div>
+                            )}
                           </div>
 
-                          <p className="text-xs font-semibold text-gray-600">
-                            Belum ada petugas
-                          </p>
-
-                          <p className="mt-1 text-[11px] text-gray-400">
-                            Petugas yang ditugaskan akan muncul di sini.
-                          </p>
+                          <span className="ml-3 hidden text-[11px] font-medium text-gray-500 sm:inline">
+                            {assignedUsers.length} terdaftar
+                          </span>
                         </div>
+                      ) : (
+                        <span className="rounded-lg border border-dashed border-gray-300 bg-white px-3 py-1.5 text-[11px] font-medium text-gray-400">
+                          Belum ditugaskan
+                        </span>
                       )}
                     </div>
                   </div>
@@ -738,13 +1033,17 @@ const ScheduleManage = () => {
               {/* EMPTY STATE */}
               {filteredData.length === 0 && (
                 <div className="rounded-xl border border-dashed border-gray-200 bg-white px-6 py-10 text-center">
+                  <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-gray-50">
+                    <BoxTime size={22} color="#94A3B8" />
+                  </div>
+
                   <p className="text-sm font-semibold text-gray-700">
                     {selectedStatus === "ACTIVE"
                       ? "Belum ada shift aktif"
                       : "Belum ada schedule draft"}
                   </p>
 
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mx-auto mt-1 max-w-xs text-xs leading-relaxed text-gray-500">
                     {selectedStatus === "ACTIVE"
                       ? "Schedule yang sudah diaktifkan akan muncul di sini."
                       : "Schedule yang masih dalam tahap persiapan akan muncul di sini."}
@@ -873,11 +1172,25 @@ const ScheduleManage = () => {
 
                 {/* PILIH SATPAM */}
                 <div className="mt-3">
-                  <p className="uppercase text-xs text-gray-500 font-semibold">
-                    Pilih Satpam Target
-                  </p>
+                  <div className="mt-5">
+                    <p className="uppercase text-xs text-gray-500 font-semibold">
+                      Pilih Satpam Target
+                    </p>
+                    <input
+                      type="text"
+                      placeholder="Cari security..."
+                      value={search.singleSecurity}
+                      onChange={(e) =>
+                        setSearch((prev) => ({
+                          ...prev,
+                          singleSecurity: e.target.value,
+                        }))
+                      }
+                      className="input input-sm input-bordered w-full min-w-[110px] bg-white font-normal mt-2"
+                    />
+                  </div>
 
-                  {activeSecurity?.slice(0, 3).map((item) => {
+                  {searchSecurity?.slice(0, 3).map((item) => {
                     const isAvailable = item.status === "ACTIVE";
                     const isSelected = selectedUserId === item.id;
 
@@ -957,141 +1270,297 @@ const ScheduleManage = () => {
                 </button>
               </div>
             </form>
-
-            <form action="" method="post" onSubmit={() => console.log("Click")}>
-              <div className="bg-white p-4 rounded-lg mt-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <ArrowSwapHorizontal size={20} color="#003B73" />
-                    <p className="text-lg font-semibold">Tukar Shift</p>
+          </div>
+        </div>
+        {/* MODAL SHIFT CHANGE */}
+        <dialog id="shift_changes" className="modal">
+          <div className="modal-box w-11/12 max-w-xl overflow-hidden rounded-2xl bg-white p-0 shadow-2xl">
+            <form action="" method="post" onSubmit={handleShiftChange}>
+              {/* Header */}
+              <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white px-5 py-3.5">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
+                    <ArrowSwapHorizontal size={19} color="#003B73" />
                   </div>
-                  <div className="bg-gray-100 rounded-sm px-2 py-0.5">
-                    <p className="text-xs text-gray-600 font-semibold tracking-wide">
-                      ROSTER-MOD
+
+                  <div>
+                    <p className="text-base font-semibold text-gray-800">
+                      Tukar Shift
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      Formulir pertukaran jadwal satpam
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-4">
-                  <p className="text-sm text-gray-700 font-semibold">
-                    Pilih Shift Target
+                <button
+                  onClick={() => {
+                    (
+                      document.getElementById(
+                        "shift_changes",
+                      ) as HTMLDialogElement | null
+                    )?.close();
+                  }}
+                  className="cursor-pointer rounded-md bg-gray-100 px-3 py-2 hover:bg-gray-200"
+                >
+                  <p className="text-[10px] font-semibold tracking-wide text-gray-500">
+                    X
                   </p>
-                  <div className="mt-2 dropdown dropdown-start w-full">
-                    <div
-                      tabIndex={0}
-                      role="button"
-                      className="bg-gray-100 rounded-sm px-2 py-1 cursor-pointer"
-                    >
-                      <div className="flex items-center justify-between">
-                        <p className="text-gray-500 text-sm tracking-wide">
-                          {selectedShift}
-                        </p>
-                        <ArrowDown2 size={17} color="black" />
-                      </div>
-                    </div>
+                </button>
+              </div>
 
-                    <ul
-                      tabIndex={-1}
-                      className="dropdown-content menu bg-gray-100 rounded-lg z-10 w-full p-2 mt-1 shadow-md border border-gray-200"
-                    >
-                      {activeSchedule?.map((item) => (
-                        <li key={item.id}>
-                          <button
-                            onClick={() => {
-                              setSelectedShift(item.name);
-                              // setSchedule({
-                              //   id: item.id,
-                              //   scheduleId: item.id,
-                              // });
-                            }}
-                            className={`text-xs text-gray-600 hover:bg-gray-200 rounded-md ${
-                              selectedShift === item.name
-                                ? "bg-gray-100 text-gray-600 font-semibold"
-                                : "text-gray-600 hover:bg-gray-100"
-                            }`}
-                          >
-                            {item.name}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
+              {/* Modal Content */}
+              <div className="max-h-[75vh] space-y-4 overflow-y-auto px-5 py-4">
+                {/* Satpam Pertama */}
+                <section>
+                  <div className="mb-2.5">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Satpam Pertama
+                    </label>
+                    <p className="mt-0.5 text-xs text-gray-400">
+                      Pilih satpam yang akan melakukan pertukaran shift.
+                    </p>
                   </div>
-                </div>
 
-                <div className="flex-1 mt-3">
-                  <label
-                    htmlFor=""
-                    className="block text-gray-700 font-semibold text-sm mb-1.5"
-                  >
-                    Pilih Tanggal Patrol
-                  </label>
-                  <input
-                    type="date"
-                    name=""
-                    id=""
-                    placeholder="Pilih Tanggal"
-                    className="bg-gray-100 rounded-sm text-gray-600 p-2 w-full"
-                  />
-                </div>
+                  {/* Search */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Cari nama satpam..."
+                      value={search.security}
+                      onChange={(e) =>
+                        setSearch((prev) => ({
+                          ...prev,
+                          security: e.target.value,
+                        }))
+                      }
+                      className="input input-bordered h-10 min-h-0 w-full rounded-lg border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none transition-all placeholder:text-gray-400 focus:border-[#003B73] focus:outline-none focus:ring-2 focus:ring-[#003B73]/10"
+                    />
+                  </div>
 
-                <div className="mt-3">
-                  <p className="uppercase text-xs text-gray-500 font-semibold">
-                    Pilih Satpam Target
-                  </p>
-                  {activeSecurity?.slice(0, 3).map((item) => {
-                    const isAvailable = item.status === "ACTIVE";
-                    return (
-                      <div
-                        className={`flex items-center justify-between mt-2 rounded-lg px-3 py-2 ${isAvailable ? "bg-gray-100" : "bg-[#F7F8FA]"}`}
-                      >
-                        <div className="flex items-center">
+                  {/* Daftar Satpam */}
+                  <div className="mt-2 max-h-40 space-y-1.5 overflow-y-auto pr-1">
+                    {firstSecurityOptions.map((item) => {
+                      const isSelected = firstAssignmentId === item.id;
+
+                      return (
+                        <label
+                          key={item.id}
+                          className={`flex cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2 transition-all duration-200 ${
+                            isSelected
+                              ? "border-[#003B73] bg-blue-50"
+                              : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                          }`}
+                        >
                           <input
                             type="radio"
-                            name="radio-4"
-                            // value={item.id}
-                            disabled={!isAvailable}
-                            className={`radio radio-xs ${isAvailable ? "radio-primary" : "radio-disabled opacity-50 cursor-not-allowed"}`}
+                            name="firstAssignment"
+                            value={item.id}
+                            checked={isSelected}
+                            onChange={() => setFirstAssignmentId(item.id)}
+                            className="radio radio-primary radio-sm"
                           />
-                          <div className="ml-2">
+
+                          <div className="min-w-0 flex-1">
                             <p
-                              className={`text-sm font-bold ${isAvailable ? "text-[#004780]" : "text-[#ABAEB5]"}`}
+                              className={`truncate text-sm font-semibold ${
+                                isSelected ? "text-[#003B73]" : "text-gray-700"
+                              }`}
                             >
                               {item.fullName}
                             </p>
-                            <p
-                              className={`text-xs font-semibold ${isAvailable ? "text-[#004780]" : "text-[#ABAEB5]"}`}
-                            >
-                              {item.employeeNumber}
+
+                            <p className="mt-0.5 truncate text-xs text-gray-400">
+                              {item.role?.description}
                             </p>
                           </div>
-                        </div>
-                        <p
-                          className={`text-xs font-bold px-2 py-0.5 rounded-sm ${
-                            isAvailable
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-200 text-gray-500"
-                          }`}
-                        >
-                          {item.status}
+
+                          {isSelected && (
+                            <span className="shrink-0 rounded-full bg-[#003B73]/10 px-2 py-0.5 text-[10px] font-semibold text-[#003B73]">
+                              Dipilih
+                            </span>
+                          )}
+                        </label>
+                      );
+                    })}
+
+                    {/* Empty State */}
+                    {activeSecurity?.filter(
+                      (item) =>
+                        item.status === "ACTIVE" &&
+                        item.id !== secondAssignmentId &&
+                        item.fullName
+                          .toLowerCase()
+                          .includes(search.security.trim().toLowerCase()),
+                    ).length === 0 && (
+                      <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-4 text-center">
+                        <p className="text-sm font-medium text-gray-500">
+                          Satpam tidak ditemukan
+                        </p>
+                        <p className="mt-0.5 text-xs text-gray-400">
+                          Coba gunakan nama lain untuk pencarian.
                         </p>
                       </div>
-                    );
-                  })}
+                    )}
+                  </div>
+                </section>
+
+                {/* Satpam Kedua */}
+                <section>
+                  <div className="mb-2.5">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Satpam Kedua
+                    </label>
+                    <p className="mt-0.5 text-xs text-gray-400">
+                      Pilih satpam yang akan bertukar shift dengan satpam
+                      pertama.
+                    </p>
+                  </div>
+
+                  {/* Search */}
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Cari nama satpam..."
+                      value={search.secondSecurity}
+                      onChange={(e) =>
+                        setSearch((prev) => ({
+                          ...prev,
+                          secondSecurity: e.target.value,
+                        }))
+                      }
+                      className="input input-bordered h-10 min-h-0 w-full rounded-lg border-gray-200 bg-white px-3 text-sm text-gray-700 outline-none transition-all placeholder:text-gray-400 focus:border-[#003B73] focus:outline-none focus:ring-2 focus:ring-[#003B73]/10"
+                    />
+                  </div>
+
+                  {/* Daftar Satpam */}
+                  <div className="mt-2 max-h-40 space-y-1.5 overflow-y-auto pr-1">
+                    {secondSecurityOptions.map((item) => {
+                      const isSelected = secondAssignmentId === item.id;
+
+                      return (
+                        <label
+                          key={item.id}
+                          className={`flex cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2 transition-all duration-200 ${
+                            isSelected
+                              ? "border-[#003B73] bg-blue-50"
+                              : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="secondAssignment"
+                            value={item.id}
+                            checked={isSelected}
+                            onChange={() => setSecondAssignmentId(item.id)}
+                            className="radio radio-primary radio-sm"
+                          />
+
+                          <div className="min-w-0 flex-1">
+                            <p
+                              className={`truncate text-sm font-semibold ${
+                                isSelected ? "text-[#003B73]" : "text-gray-700"
+                              }`}
+                            >
+                              {item.fullName}
+                            </p>
+
+                            <p className="mt-0.5 text-xs text-gray-400">
+                              Petugas keamanan
+                            </p>
+                          </div>
+
+                          {isSelected && (
+                            <span className="shrink-0 rounded-full bg-[#003B73]/10 px-2 py-0.5 text-[10px] font-semibold text-[#003B73]">
+                              Dipilih
+                            </span>
+                          )}
+                        </label>
+                      );
+                    })}
+
+                    {/* Empty State */}
+                    {activeSecurity?.filter(
+                      (item) =>
+                        item.status === "ACTIVE" &&
+                        item.id !== firstAssignmentId &&
+                        item.fullName
+                          .toLowerCase()
+                          .includes(search.secondSecurity.trim().toLowerCase()),
+                    ).length === 0 && (
+                      <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-4 text-center">
+                        <p className="text-sm font-medium text-gray-500">
+                          Satpam tidak ditemukan
+                        </p>
+                        <p className="mt-0.5 text-xs text-gray-400">
+                          Coba gunakan nama lain untuk pencarian.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </section>
+
+                {/* Tanggal Pertukaran */}
+                <div>
+                  <label
+                    htmlFor="effectiveDate"
+                    className="mb-1.5 block text-sm font-semibold text-gray-700"
+                  >
+                    Tanggal Pertukaran
+                  </label>
+
+                  <input
+                    id="effectiveDate"
+                    type="date"
+                    value={effectiveDate}
+                    onChange={(event) => setEffectiveDate(event.target.value)}
+                    required
+                    className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm text-gray-700 outline-none transition-colors focus:border-[#003B73] focus:ring-2 focus:ring-[#003B73]/10"
+                  />
                 </div>
 
+                {/* Alasan Pertukaran */}
+                <div>
+                  <label
+                    htmlFor="reason"
+                    className="mb-1.5 block text-sm font-semibold text-gray-700"
+                  >
+                    Alasan Pertukaran
+                    <span className="ml-1 text-xs font-normal text-gray-400">
+                      (Opsional)
+                    </span>
+                  </label>
+
+                  <textarea
+                    id="reason"
+                    value={reason}
+                    onChange={(event) => setReason(event.target.value)}
+                    rows={2}
+                    placeholder="Masukkan alasan pertukaran shift..."
+                    className="w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 outline-none transition-colors placeholder:text-gray-400 focus:border-[#003B73] focus:ring-2 focus:ring-[#003B73]/10"
+                  />
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="border-t border-gray-100 bg-gray-50/80 px-5 py-3">
                 <button
-                  className="flex items-center justify-center w-full bg-[#FED400] py-2 rounded-sm mt-3 cursor-pointer"
-                  onClick={() => console.log("Click")}
+                  type="submit"
+                  disabled={
+                    isChangingShift ||
+                    !firstAssignmentId ||
+                    !secondAssignmentId ||
+                    !effectiveDate
+                  }
+                  className="w-full rounded-lg bg-[#003B73] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#00529C] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <Send size={17} color="black" />
-                  <p className="text-sm font-semibold tracking-wide mb-0.5 ml-1">
-                    Kirim
-                  </p>
+                  {isChangingShift ? "Memproses..." : "Ajukan Pertukaran Shift"}
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </dialog>
+        {/* MODAL SHIFT CHANGE */}
 
         {/* MODAL CREATE SCHEDULE*/}
         <dialog id="patrol_schedules" className="modal">
@@ -1696,8 +2165,381 @@ const ScheduleManage = () => {
         </dialog>
         {/* MODAL CREATE SCHEDULE*/}
 
+        {/* MODAL BULK ASSIGNMENT */}
+        <dialog id="patrol_schedules_assignment" className="modal">
+          <div className="modal-box w-11/12 max-w-2xl overflow-hidden rounded-2xl border border-gray-200 bg-white p-0 shadow-xl">
+            <form
+              onSubmit={handleBulkAssign}
+              className="flex max-h-[90vh] flex-col"
+            >
+              {/* HEADER */}
+              <div className="flex items-center justify-between bg-[#003B73] px-5 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg bg-white/10 p-2">
+                    <CalendarAdd size={22} color="white" />
+                  </div>
+
+                  <div>
+                    <h2 className="text-sm font-bold uppercase tracking-wide text-white">
+                      Buat Penugasan Roster
+                    </h2>
+
+                    <p className="mt-1 text-xs text-blue-100">
+                      Tetapkan beberapa shift untuk satu satpam
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    document
+                      .getElementById("patrol_schedules_assignment")
+                      ?.removeAttribute("open");
+                  }}
+                  className="rounded-lg px-3 py-2 text-lg font-bold text-white transition hover:bg-white/10"
+                  aria-label="Tutup modal"
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* CONTENT */}
+              <div className="space-y-6 overflow-y-auto p-5">
+                {/* INFORMASI PERIODE */}
+                <section>
+                  <div className="mb-3">
+                    <h3 className="text-sm font-bold text-gray-800">
+                      Periode Penugasan
+                    </h3>
+
+                    <p className="mt-1 text-xs text-gray-500">
+                      Tentukan tanggal berlaku untuk seluruh shift yang dipilih.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {/* START DATE */}
+                    <div>
+                      <label
+                        htmlFor="bulk-start-date"
+                        className="mb-2 block text-sm font-semibold text-gray-700"
+                      >
+                        Tanggal Mulai
+                        <span className="ml-1 text-red-500">*</span>
+                      </label>
+
+                      <input
+                        id="bulk-start-date"
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        required
+                        className="input input-bordered h-11 w-full rounded-lg border-gray-300 bg-white text-sm focus:border-[#003B73] focus:outline-none focus:ring-1 focus:ring-[#003B73]"
+                      />
+                    </div>
+
+                    {/* END DATE */}
+                    <div>
+                      <label
+                        htmlFor="bulk-end-date"
+                        className="mb-2 block text-sm font-semibold text-gray-700"
+                      >
+                        Tanggal Selesai
+                        <span className="ml-1 text-red-500">*</span>
+                      </label>
+
+                      <input
+                        id="bulk-end-date"
+                        type="date"
+                        value={endDate}
+                        min={startDate || undefined}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        required
+                        className="input input-bordered h-11 w-full rounded-lg border-gray-300 bg-white text-sm focus:border-[#003B73] focus:outline-none focus:ring-1 focus:ring-[#003B73]"
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                {/* PILIH SHIFT */}
+                <section>
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-bold text-gray-800">
+                        Pilih Shift Target
+                        <span className="ml-1 text-red-500">*</span>
+                      </h3>
+
+                      <p className="mt-1 text-xs text-gray-500">
+                        Pilih satu atau beberapa shift.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={toggleAllSchedules}
+                      disabled={!activeSchedule?.length}
+                      className="shrink-0 text-xs font-bold text-[#003B73] transition hover:text-[#00529C] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {activeSchedule?.length > 0 &&
+                      activeSchedule.every((item) =>
+                        selectedScheduleIds.includes(item.id),
+                      )
+                        ? "Batalkan Semua"
+                        : "Pilih Semua"}
+                    </button>
+                  </div>
+
+                  <div className="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-gray-200 bg-gray-50 p-3">
+                    {activeSchedule?.length ? (
+                      activeSchedule.map((item) => {
+                        const isSelected = selectedScheduleIds.includes(
+                          item.id,
+                        );
+
+                        return (
+                          <label
+                            key={item.id}
+                            className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg border p-3 transition ${
+                              isSelected
+                                ? "border-[#003B73] bg-blue-50"
+                                : "border-gray-200 bg-white hover:border-blue-300"
+                            }`}
+                          >
+                            <div className="flex min-w-0 items-center gap-3">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() =>
+                                  toggleScheduleSelection(item.id)
+                                }
+                                className="checkbox checkbox-sm rounded border-gray-300 [--chkbg:#003B73] [--chkfg:white]"
+                              />
+
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-bold text-gray-800">
+                                  {item.name}
+                                </p>
+
+                                <p className="mt-1 text-xs text-gray-500">
+                                  {item.startTime} – {item.endTime} WITA
+                                </p>
+                              </div>
+                            </div>
+
+                            {isSelected && (
+                              <span className="shrink-0 rounded-full bg-blue-100 px-2 py-1 text-[10px] font-bold text-[#003B73]">
+                                Dipilih
+                              </span>
+                            )}
+                          </label>
+                        );
+                      })
+                    ) : (
+                      <div className="py-6 text-center">
+                        <p className="text-sm font-semibold text-gray-500">
+                          Belum ada jadwal shift aktif.
+                        </p>
+
+                        <p className="mt-1 text-xs text-gray-400">
+                          Aktifkan jadwal terlebih dahulu sebelum membuat
+                          penugasan.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between rounded-lg bg-blue-50 px-3 py-2">
+                    <p className="text-xs text-gray-600">
+                      Jumlah shift dipilih
+                    </p>
+
+                    <p className="text-sm font-bold text-[#003B73]">
+                      {selectedScheduleIds.length} shift
+                    </p>
+                  </div>
+                </section>
+
+                {/* PILIH SATPAM */}
+                <section>
+                  <div className="mb-3">
+                    <h3 className="text-sm font-bold text-gray-800">
+                      Pilih Satpam Target
+                      <span className="ml-1 text-red-500">*</span>
+                    </h3>
+
+                    <p className="mt-1 text-xs text-gray-500">
+                      Pilih satu satpam untuk seluruh shift di atas.
+                    </p>
+                  </div>
+
+                  {/* SEARCH */}
+                  <input
+                    type="text"
+                    placeholder="Cari nama atau nomor pegawai..."
+                    value={search.security}
+                    onChange={(e) =>
+                      setSearch((prev) => ({
+                        ...prev,
+                        security: e.target.value,
+                      }))
+                    }
+                    className="input input-bordered h-11 w-full rounded-lg border-gray-300 bg-white text-sm focus:border-[#003B73] focus:outline-none focus:ring-1 focus:ring-[#003B73]"
+                  />
+
+                  {/* SECURITY LIST */}
+                  <div className="mt-3 max-h-60 space-y-2 overflow-y-auto">
+                    {searchSecurity?.length ? (
+                      searchSecurity.map((item) => {
+                        const isAvailable = item.status === "ACTIVE";
+                        const isSelected = selectedUserId === item.id;
+
+                        return (
+                          <label
+                            key={item.id}
+                            className={`flex items-center justify-between gap-3 rounded-xl border p-3 transition ${
+                              isSelected
+                                ? "border-[#003B73] bg-blue-50"
+                                : isAvailable
+                                  ? "border-gray-200 bg-white hover:border-blue-300"
+                                  : "cursor-not-allowed border-gray-100 bg-gray-50 opacity-60"
+                            } ${
+                              isAvailable
+                                ? "cursor-pointer"
+                                : "cursor-not-allowed"
+                            }`}
+                          >
+                            <div className="flex min-w-0 items-center gap-3">
+                              <input
+                                type="radio"
+                                name="securityUser"
+                                value={item.id}
+                                checked={isSelected}
+                                onChange={() => setSelectedUserId(item.id)}
+                                disabled={!isAvailable}
+                                className="radio radio-sm radio-primary"
+                              />
+
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-bold text-gray-800">
+                                  {item.fullName}
+                                </p>
+
+                                <p className="mt-1 text-xs text-gray-500">
+                                  {item.employeeNumber ||
+                                    "Nomor pegawai belum tersedia"}
+                                </p>
+                              </div>
+                            </div>
+
+                            <span
+                              className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-bold ${
+                                isAvailable
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-gray-200 text-gray-500"
+                              }`}
+                            >
+                              {item.status}
+                            </span>
+                          </label>
+                        );
+                      })
+                    ) : (
+                      <div className="rounded-lg border border-dashed border-gray-300 py-6 text-center">
+                        <p className="text-sm font-semibold text-gray-500">
+                          Satpam tidak ditemukan.
+                        </p>
+
+                        <p className="mt-1 text-xs text-gray-400">
+                          Coba gunakan nama atau nomor pegawai lain.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </section>
+
+                {/* SUMMARY */}
+                <section className="rounded-xl border border-blue-100 bg-blue-50 p-4">
+                  <h3 className="text-xs font-bold uppercase tracking-wide text-[#003B73]">
+                    Ringkasan Penugasan
+                  </h3>
+
+                  <div className="mt-3 space-y-2 text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-gray-600">Satpam dipilih</span>
+
+                      <span className="font-semibold text-gray-800">
+                        {searchSecurity?.find(
+                          (item) => item.id === selectedUserId,
+                        )?.fullName || "Belum dipilih"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Jumlah shift</span>
+
+                      <span className="font-semibold text-gray-800">
+                        {selectedScheduleIds.length} shift
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-gray-600">Periode</span>
+
+                      <span className="text-right font-semibold text-gray-800">
+                        {startDate || "—"} s.d. {endDate || "—"}
+                      </span>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              {/* FOOTER */}
+              <div className="flex flex-col-reverse gap-3 border-t border-gray-200 bg-white px-5 py-4 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    (
+                      document.getElementById(
+                        "patrol_schedules_assignment",
+                      ) as HTMLDialogElement | null
+                    )?.close();
+                  }}
+                  className="btn rounded-lg border-gray-300 bg-white px-5 text-sm font-semibold text-gray-600 hover:bg-gray-100"
+                >
+                  Batal
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={
+                    !selectedUserId ||
+                    selectedScheduleIds.length === 0 ||
+                    !startDate ||
+                    !endDate ||
+                    endDate < startDate ||
+                    isBulkAssigning
+                  }
+                  className="btn rounded-lg border-none bg-[#003B73] px-5 text-sm font-bold text-white hover:bg-[#00529C] disabled:bg-gray-300"
+                >
+                  {isBulkAssigning ? (
+                    <>
+                      <span className="loading loading-spinner loading-xs" />
+                      Menyimpan...
+                    </>
+                  ) : (
+                    "Simpan Penugasan"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </dialog>
+        {/* END MODAL BULK ASSIGNMENT */}
+
         {/* Jadwal Patroli */}
-        <div className="bg-white rounded-lg p-4 mt-4">
+        <div className="mt-4 rounded-lg bg-white p-4">
           {/* Header */}
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -1705,14 +2547,14 @@ const ScheduleManage = () => {
                 Roster Rotasi Bulan ({monthLabel})
               </p>
 
-              <p className="text-sm text-gray-500 font-semibold">
+              <p className="text-sm font-semibold text-gray-500">
                 Jadwal penugasan terpadu Satpam Gardu Induk Gambir 150kV
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
               {/* Legend Shift */}
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {Object.entries(shiftConfig).map(([kode, config]) => (
                   <div
                     key={kode}
@@ -1751,41 +2593,42 @@ const ScheduleManage = () => {
                 ))}
               </select>
 
+              {/* Tombol Tukar Shift */}
               <button
                 type="button"
-                className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 transition-colors px-3 py-1.5 rounded-md"
+                onClick={handelOpenModalShiftChange}
+                className="flex cursor-pointer items-center gap-2 rounded-md bg-gray-100 px-3 py-1.5 transition-colors hover:bg-gray-200"
               >
                 <ArrowSwapHorizontal size={16} color="#4b5563" />
 
-                <p className="text-sm text-gray-600 font-bold">Tukar Shift</p>
+                <p className="text-sm font-bold text-gray-600">Tukar Shift</p>
               </button>
             </div>
           </div>
 
-          {/* Tabel */}
-          <div className="mt-6 w-full overflow-x-auto border border-gray-200 rounded-lg shadow-inner">
-            <table className="w-full border-collapse min-w-max text-sm">
+          {/* Tabel Roster */}
+          <div className="mt-6 w-full overflow-x-auto rounded-lg border border-gray-200 shadow-inner">
+            <table className="w-full min-w-max border-collapse text-sm">
+              {/* Header Tabel */}
               <thead>
                 <tr className="bg-gray-50">
-                  <th className="sticky left-0 z-20 bg-gray-100 p-3 text-left font-bold text-gray-700 border-b border-r border-gray-300 shadow-[1px_0_0_0_#d1d5db] min-w-[200px]">
+                  <th className="sticky left-0 z-20 min-w-[200px] border-b border-r border-gray-300 bg-gray-100 p-3 text-left font-bold text-gray-700 shadow-[1px_0_0_0_#d1d5db]">
                     Nama Petugas
                   </th>
 
                   {kalenderBulanIni.map((item) => (
                     <th
                       key={item.tgl}
-                      className={`border-b border-gray-200 p-2 text-center min-w-[55px] ${
-                        item.isLibur
-                          ? "bg-red-50 text-red-600"
-                          : "text-gray-700"
+                      className={`min-w-[42px] border-b border-l border-gray-200 p-2 text-center ${
+                        item.isLibur ? "bg-red-50" : "bg-gray-50"
                       }`}
                     >
-                      <div className="flex flex-col items-center">
-                        <span className="text-[10px] font-bold uppercase tracking-wider">
-                          {item.hari}
-                        </span>
+                      <div className="text-xs font-bold text-gray-700">
+                        {item.hari}
+                      </div>
 
-                        <span className="text-sm font-bold">({item.tgl})</span>
+                      <div className="mt-1 text-sm font-bold text-gray-900">
+                        {item.tgl}
                       </div>
                     </th>
                   ))}
@@ -1817,7 +2660,7 @@ const ScheduleManage = () => {
                   </tr>
                 )}
 
-                {/* Site belum tersedia */}
+                {/* Site Belum Tersedia */}
                 {!isRosterLoading && !siteId && (
                   <tr>
                     <td
@@ -1829,7 +2672,7 @@ const ScheduleManage = () => {
                   </tr>
                 )}
 
-                {/* Data kosong */}
+                {/* Data Kosong */}
                 {!isRosterLoading &&
                   !isRosterError &&
                   siteId &&
@@ -1844,19 +2687,20 @@ const ScheduleManage = () => {
                     </tr>
                   )}
 
-                {/* Data dari database */}
+                {/* Data Petugas */}
                 {!isRosterLoading &&
                   !isRosterError &&
+                  siteId &&
                   roster.map((petugas) => (
                     <tr
                       key={petugas.userId}
-                      className="hover:bg-blue-50 transition-colors"
+                      className="transition-colors hover:bg-blue-50"
                     >
                       {/* Identitas Petugas */}
-                      <td className="sticky left-0 z-10 bg-white p-3 font-semibold text-gray-800 border-b border-r border-gray-300 shadow-[1px_0_0_0_#d1d5db]">
+                      <td className="sticky left-0 z-10 border-b border-r border-gray-300 bg-white p-3 font-semibold text-gray-800 shadow-[1px_0_0_0_#d1d5db]">
                         <div>{petugas.fullName}</div>
 
-                        <div className="text-xs text-gray-500 font-normal">
+                        <div className="text-xs font-normal text-gray-500">
                           {petugas.employeeNumber ?? "-"}
                         </div>
                       </td>
@@ -1869,7 +2713,7 @@ const ScheduleManage = () => {
                           String(item.tgl).padStart(2, "0"),
                         ].join("-");
 
-                        const shift = petugas.shifts[dateKey];
+                        const shift = petugas.shifts?.[dateKey];
 
                         const config = shift ? shiftConfig[shift] : undefined;
 
@@ -1880,13 +2724,13 @@ const ScheduleManage = () => {
                               item.isLibur ? "bg-red-50/30" : ""
                             }`}
                           >
-                            <div className="flex justify-center items-center h-full">
+                            <div className="flex h-full items-center justify-center">
                               {shift ? (
                                 <div
                                   title={`${petugas.fullName} - ${dateKey}`}
-                                  className={`w-7 h-7 flex items-center justify-center rounded border font-bold text-xs shadow-sm ${
+                                  className={`flex h-7 w-7 items-center justify-center rounded border text-xs font-bold shadow-sm ${
                                     config?.style ??
-                                    "bg-gray-100 text-gray-600 border-gray-200"
+                                    "border-gray-200 bg-gray-100 text-gray-600"
                                   }`}
                                 >
                                   {shift}
