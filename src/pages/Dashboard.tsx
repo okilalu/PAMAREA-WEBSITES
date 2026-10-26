@@ -8,14 +8,29 @@ import {
   UserOctagon,
   Warning2,
 } from "iconsax-react";
-import React from "react";
+import React, { useMemo } from "react";
 import MapsCheckpoint from "../components/mapsCheckpoint/MapsCheckpoint";
 import { useSecurityUsers } from "../hooks/users/useUsers";
 import { usePatrolPoints } from "../hooks/patrol-point/usePatrolPoints";
+import { usePatrolSchedules } from "../hooks/schedule/usePatrolSchedules";
 
 const Dashboard = () => {
   const { data: security } = useSecurityUsers();
   const { data: checkpoints } = usePatrolPoints();
+  const { data: shift } = usePatrolSchedules();
+
+  const shiftActive = shift?.data.find((s) => s.name);
+  // console.log("ACTIVE", JSON.stringify(shiftActive, null, 2));
+
+  const todayFormatted = useMemo(() => {
+    return new Date().toLocaleDateString("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  }, []);
+
   const cardHazard = [
     {
       alert: "Critical",
@@ -177,19 +192,6 @@ const Dashboard = () => {
 
             {/* Controls */}
             <div className="flex shrink-0 items-center gap-2">
-              {/* Shift */}
-              <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
-                <Sun size={17} color="#6B7280" />
-
-                <div>
-                  <p className="text-[11px] text-gray-400">Shift Aktif</p>
-
-                  <p className="text-xs font-semibold text-gray-700">
-                    Pagi · 07:00 - 15:00
-                  </p>
-                </div>
-              </div>
-
               {/* Date */}
               <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
                 <Calendar size={17} color="#6B7280" variant="Bulk" />
@@ -198,8 +200,30 @@ const Dashboard = () => {
                   <p className="text-[11px] text-gray-400">Periode</p>
 
                   <p className="text-xs font-semibold text-gray-700">
-                    Hari Ini
+                    {todayFormatted ?? "Hari Ini"}
                   </p>
+                </div>
+              </div>
+
+              {/* Shift */}
+              <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+                <Sun size={17} color="#6B7280" />
+
+                <div>
+                  <p className="text-[11px] text-gray-400">Shift Aktif</p>
+                  {(shift?.data.length ?? 0 > 0) ? (
+                    <div className="flex items-center gap-1">
+                      <p className="text-xs font-semibold text-gray-700">
+                        {shiftActive?.name}
+                      </p>
+                      <div className="h-[1px] p-0.5 rounded-full bg-emerald-500 animate-ping" />
+                      <p className="text-xs font-semibold text-gray-700">
+                        {shiftActive?.startTime} - {shiftActive?.endTime}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-500">Belum ada shift</p>
+                  )}
                 </div>
               </div>
 
