@@ -1,5 +1,6 @@
 import {
   ArrowDown2,
+  Call,
   CloseCircle,
   Edit,
   People,
@@ -10,26 +11,34 @@ import {
 } from "iconsax-react";
 import React, { useMemo, useState } from "react";
 import {
+  useActivateUser,
   useCreateUser,
+  useDeactivateUser,
   useDeleteUser,
   useUpdateUser,
   useUsers,
 } from "../hooks/users/useUsers";
 import { useRoles } from "../hooks/role/useRole";
 import UserPagination from "../components/manageUser/UserPagination";
+import { useAuthContext } from "../hooks/auth/useAuthContext";
 
 const UserManage = () => {
+  const { user } = useAuthContext();
+  const siteId = user?.siteId;
   const { data: listUsers } = useUsers();
   const { mutateAsync: register, isPending: isRegistering } = useCreateUser();
   const { mutateAsync: updateUser, isPending: isUpdatingUser } =
     useUpdateUser();
   const { mutateAsync: removeUser, isPending: isDeletingUser } =
     useDeleteUser();
+  const { mutateAsync: deactivated } = useDeactivateUser();
+  const { mutateAsync: activated } = useActivateUser();
   const {
     data: rolesResponse,
     isPending: isRolesPending,
     isError: isRolesError,
   } = useRoles();
+
   const [employeeNumber, setEmployeeNumber] = useState("");
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
@@ -37,7 +46,7 @@ const UserManage = () => {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [roleId, setRoleId] = useState("");
-  const [siteId, setSiteId] = useState("");
+  // const [siteId, setSiteId] = useState("");
 
   const [registerError, setRegisterError] = useState("");
   const [registerSuccess, setRegisterSuccess] = useState("");
@@ -51,6 +60,8 @@ const UserManage = () => {
   const [isEditMode, setIsEditMode] = useState(false);
 
   const users = listUsers?.data ?? [];
+
+  console.log("USERS", JSON.stringify(users, null, 2));
   const roles = rolesResponse?.data ?? [];
 
   const listUnit = useMemo(() => {
@@ -137,7 +148,6 @@ const UserManage = () => {
     setPhone(user.phone ?? "");
     setPassword("");
     setRoleId(user.roleId ?? user.role?.id ?? "");
-    setSiteId(user.siteId ?? user.site?.id ?? "");
 
     setRegisterError("");
     setRegisterSuccess("");
@@ -164,7 +174,6 @@ const UserManage = () => {
     setPhone("");
     setPassword("");
     setRoleId("");
-    setSiteId("");
 
     setRegisterError("");
   };
@@ -194,11 +203,8 @@ const UserManage = () => {
       setRegisterError("Lengkapi semua field yang wajib diisi.");
       return;
     }
-    if (
-      normalizedEmployeeNumber !== "" &&
-      !/^SEC-\d{3}$/.test(normalizedEmployeeNumber)
-    ) {
-      setRegisterError("Satpam ID hanya boleh berisi angka.");
+    if (!/^\d{3}$/.test(normalizedEmployeeNumber)) {
+      setRegisterError("Satpam ID harus terdiri dari 3 digit angka.");
       return;
     }
 
@@ -243,14 +249,17 @@ const UserManage = () => {
       setRegisterError("Role belum ditemukan. Periksa data role dari backend.");
       return;
     }
+
+    const formattedEmployeeNumber = `SEC-${normalizedEmployeeNumber}`;
     const payload = {
-      employeeNumber: normalizedEmployeeNumber,
+      employeeNumber: formattedEmployeeNumber,
       fullName: normalizedFullName,
       username: normalizedUsername,
       email: normalizedEmail,
       phone: normalizedPhone,
       password,
       roleId: selectedRoleData.id,
+      siteId,
     };
     console.log("PAYLOAD", payload);
     try {
@@ -346,7 +355,7 @@ const UserManage = () => {
       email: normalizedEmail,
       phone: normalizedPhone,
       roleId: selectedRoleData.id,
-      siteId: siteId || undefined,
+      siteId,
     };
 
     try {
@@ -381,6 +390,44 @@ const UserManage = () => {
     } catch (error) {
       console.log(error);
       setRegisterError("Gagal menghapus user. Silakan coba kembali.");
+    }
+  };
+
+  const deactivatedUser = async (userId: string) => {
+    const confirmed = window.confirm(
+      "Apakah kamu yakin ingin menonaktifkan user ini?",
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deactivated(userId);
+
+      setRegisterSuccess("User berhasil dinonaktifkan.");
+      setRegisterError("");
+    } catch (error) {
+      console.error("Gagal menonaktifkan user:", error);
+      setRegisterError("Gagal menonaktifkan user. Silakan coba kembali.");
+      setRegisterSuccess("");
+    }
+  };
+
+  const activatedUser = async (userId: string) => {
+    const confirmed = window.confirm(
+      "Apakah kamu yakin ingin mengaktifkan user ini?",
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await activated(userId);
+
+      setRegisterSuccess("User berhasil diaktifkan.");
+      setRegisterError("");
+    } catch (error) {
+      console.error("Gagal mengaktifkan user:", error);
+      setRegisterError("Gagal mengaktifkan user. Silakan coba kembali.");
+      setRegisterSuccess("");
     }
   };
 
@@ -816,6 +863,10 @@ const UserManage = () => {
                     </th>
 
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+                      Info & Kontak
+                    </th>
+
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
                       Status Akun
                     </th>
 
@@ -834,13 +885,40 @@ const UserManage = () => {
                           className="transition-colors hover:bg-gray-50"
                         >
                           {/* PERSONEL */}
-                          <td className="px-4 py-3">
-                            <div className="font-medium text-gray-900">
-                              {item.fullName}
-                            </div>
 
-                            <div className="text-xs text-gray-500">
-                              {item.employeeNumber ?? "-"}
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3 min-w-[200px]">
+                              {/* Foto Profil */}
+                              <div className="relative shrink-0">
+                                <img
+                                  src={
+                                    item.photoUrl ||
+                                    "https://images.unsplash.com/photo-1529665253569-6d01c0eaf7b6?w=120&h=120&fit=crop&crop=faces&auto=format&q=80"
+                                  }
+                                  alt={`Foto ${item.fullName}`}
+                                  className={`h-11 w-11 rounded-full object-cover bg-gray-100 ring-2 ring-offset-1 transition-all ${
+                                    item.status === "ACTIVE"
+                                      ? "ring-emerald-500/30"
+                                      : "ring-gray-200"
+                                  }`}
+                                />
+                              </div>
+
+                              {/* Informasi Satpam */}
+                              <div className="min-w-0 flex-1">
+                                <div
+                                  className="truncate text-sm font-semibold text-gray-800"
+                                  title={item.fullName}
+                                >
+                                  {item.fullName || "Nama tidak tersedia"}
+                                </div>
+
+                                <div className="mt-1 flex items-center gap-1.5">
+                                  <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[11px] font-medium text-gray-600">
+                                    {item.employeeNumber || "-"}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                           </td>
 
@@ -864,16 +942,127 @@ const UserManage = () => {
                               </div>
                             )}
                           </td>
-
                           {/* ROLE */}
                           <td className="px-4 py-3">
-                            <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
-                              {item.role?.name}
-                            </span>
+                            {(() => {
+                              const roleConfig = {
+                                ADMIN: {
+                                  label: "Administrator",
+                                  badge:
+                                    "bg-purple-50 text-purple-700 ring-purple-600/20",
+                                },
+                                SECURITY: {
+                                  label: "Security",
+                                  badge:
+                                    "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+                                },
+                                DANRU_SECURITY: {
+                                  label: "Danru Security",
+                                  badge:
+                                    "bg-amber-50 text-amber-700 ring-amber-600/20",
+                                },
+                                CHIEF_SECURITY: {
+                                  label: "Chief Security",
+                                  badge:
+                                    "bg-rose-50 text-rose-700 ring-rose-600/20",
+                                },
+                              } as const;
+
+                              const roleName = item.role?.name;
+                              const role = roleName
+                                ? roleConfig[
+                                    roleName as keyof typeof roleConfig
+                                  ]
+                                : undefined;
+
+                              return (
+                                <div className="flex flex-col items-start gap-2">
+                                  {/* Role Badge */}
+                                  <div
+                                    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${
+                                      role?.badge ??
+                                      "bg-gray-100 text-gray-600 ring-gray-500/20"
+                                    }`}
+                                  >
+                                    <p className="uppercase">
+                                      {role?.label ??
+                                        roleName ??
+                                        "Tidak diketahui"}
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                          </td>
+
+                          <td className="px-4 py-3">
+                            <div className="flex items-center">
+                              <Call size={17} color="gray" />
+                              <p className="ml-1.5 text-sm text-black font-semibold">
+                                {item.phone}
+                              </p>
+                            </div>
                           </td>
 
                           {/* STATUS */}
                           <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              {/* Toggle Switch */}
+                              <button
+                                type="button"
+                                role="switch"
+                                aria-checked={item.status === "ACTIVE"}
+                                aria-label={`${
+                                  item.status === "ACTIVE"
+                                    ? "Nonaktifkan"
+                                    : "Aktifkan"
+                                } ${item.fullName}`}
+                                onClick={() => {
+                                  if (item.status === "ACTIVE") {
+                                    deactivatedUser(item.id);
+                                  } else {
+                                    activatedUser(item.id);
+                                  }
+                                }}
+                                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                                  item.status === "ACTIVE"
+                                    ? "bg-emerald-500 focus:ring-emerald-500"
+                                    : "bg-gray-300 focus:ring-gray-400"
+                                }`}
+                              >
+                                <span
+                                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                                    item.status === "ACTIVE"
+                                      ? "translate-x-6"
+                                      : "translate-x-1"
+                                  }`}
+                                />
+                              </button>
+
+                              {/* Status Label */}
+                              <div className="flex flex-col">
+                                <span
+                                  className={`text-xs font-semibold ${
+                                    item.status === "ACTIVE"
+                                      ? "text-emerald-700"
+                                      : "text-gray-500"
+                                  }`}
+                                >
+                                  {item.status === "ACTIVE"
+                                    ? "Aktif"
+                                    : "Nonaktif"}
+                                </span>
+
+                                <span className="mt-0.5 text-[10px] text-gray-400">
+                                  {item.status === "ACTIVE"
+                                    ? "Akses diaktifkan"
+                                    : "Akses dinonaktifkan"}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* <td className="px-4 py-3">
                             <span
                               className={`inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-medium ${
                                 item.status === "ACTIVE"
@@ -893,8 +1082,7 @@ const UserManage = () => {
                                 ? "Aktif"
                                 : "Tidak Aktif"}
                             </span>
-                          </td>
-
+                          </td> */}
                           {/* ACTION */}
                           <td className="px-4 py-3 text-center">
                             <div className="flex items-center justify-center gap-4">
