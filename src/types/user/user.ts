@@ -13,6 +13,7 @@ export interface UserResponse {
   username: string;
   email: string | null;
   phone: string | null;
+  photoUrl?: string | null;
 
   status: UserStatus;
 

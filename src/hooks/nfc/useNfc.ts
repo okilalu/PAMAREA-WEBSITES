@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  activateNfcTag,
   createNfcTag,
   getNfcTagById,
   getNfcTags,
@@ -30,6 +31,25 @@ export const useCreateNfcTag = () => {
       await queryClient.invalidateQueries({
         queryKey: ["nfc-tags"],
       });
+    },
+  });
+};
+
+export const useActivateNfc = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => activateNfcTag(id),
+
+    onSuccess: async (_, id) => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["nfc-tags"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["nfc-tags", id],
+        }),
+      ]);
     },
   });
 };

@@ -10,11 +10,11 @@ import type {
   CreateScheduleAssignmentPayload,
 } from "../../types";
 
-export const useScheduleAssigment = (scheduleId: string) => {
+export const useScheduleAssigments = (scheduleId: string) => {
   return useQuery({
     queryKey: ["patrol-schedule-assignment", scheduleId],
     queryFn: () => getScheduleAssignment(scheduleId),
-    enabled: !!scheduleId,
+    // enabled: !!scheduleId,
   });
 };
 export const useGetScheduleAssigments = () => {
@@ -54,18 +54,17 @@ export const useBulkAssignUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      scheduleId,
-      payload,
-    }: {
-      scheduleId: string;
-      payload: BulkAssignUserPayload;
-    }) => bulkAssignUser(scheduleId, payload),
+    mutationFn: (payload: BulkAssignUserPayload) => bulkAssignUser(payload),
 
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ["patrol-schedules"],
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["patrol-schedules"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["patrol-schedule-assignment"],
+        }),
+      ]);
     },
   });
 };
