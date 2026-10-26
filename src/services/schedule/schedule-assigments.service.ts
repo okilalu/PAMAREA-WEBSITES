@@ -23,11 +23,10 @@ export const createScheduleAssignment = async (
 
 // Menambahkan beberapa assignment sekaligus untuk satu petugas
 export const bulkAssignUser = async (
-  scheduleId: string,
   payload: BulkAssignUserPayload,
 ): Promise<BulkAssignUserResponse> => {
   const response = await apiClient.post<BulkAssignUserResponse>(
-    `/patrol-schedule-assignments/schedules/${scheduleId}/bulk`,
+    `/patrol-schedule-assignments/bulk`,
     payload,
   );
 
