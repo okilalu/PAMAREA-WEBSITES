@@ -109,10 +109,8 @@ const Checkpoint = () => {
     },
     {
       icon: <Warning2 size={17} color="#93000A" />,
-      value: listCheckpoints?.filter(
-        (item) =>
-          item.nfcAssignments.map((i) => i.status === "REMOVED") === null,
-      ).length,
+      value: listCheckpoints?.filter((item) => item.status === "INACTIVE")
+        .length,
       title: "NFC Non Active",
       bgColor: "bg-[#FFDAD6]",
       textColor: "text-[#93000A]",
