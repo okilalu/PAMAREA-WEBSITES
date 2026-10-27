@@ -3,15 +3,18 @@ import {
   activatePatrolSchedule,
   addScheduleAssignment,
   createPatrolSchedule,
+  deletePatrolSchedule,
   getMonthlyRoster,
   getPatrolScheduleById,
   getPatrolSchedules,
+  updatePatrolSchedule,
 } from "../../services/schedule/patrol-schedule.service";
 import type {
   AddScheduleAssignmentPayload,
   CreatePatrolSchedulePayload,
   MonthlyRosterItem,
   MonthlyRosterQuery,
+  UpdatePatrolSchedulePayload,
 } from "../../types";
 
 export const usePatrolSchedules = () => {
@@ -88,5 +91,43 @@ export const useMonthlyRoster = (params: MonthlyRosterQuery | null) => {
     },
     enabled: Boolean(params?.siteId && params?.month && params?.year),
     staleTime: 5 * 60 * 1000,
+  });
+};
+
+export const useUpdatePatrolSchedule = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: UpdatePatrolSchedulePayload;
+    }) => updatePatrolSchedule(id, payload),
+
+    onSuccess: async (_data, id) => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["patrol-schedules"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["patrol-schedule", id],
+        }),
+      ]);
+    },
+  });
+};
+export const useDeletePatrolSchedule = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => deletePatrolSchedule(id),
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["patrol-schedules"],
+      });
+    },
   });
 };
