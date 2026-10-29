@@ -143,8 +143,6 @@ const ShiftChanges = () => {
       reason: reason.trim() || undefined,
     };
 
-    console.log("Payload tukar shift:", JSON.stringify(payload, null, 2));
-
     try {
       await shiftChange(payload);
 

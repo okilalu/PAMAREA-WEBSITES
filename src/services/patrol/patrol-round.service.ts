@@ -26,7 +26,6 @@ export const getAllRoundsGroupedByUser =
     const response = await apiClient.get<PatrolRoundsGroupedByUserResponse>(
       "/patrol-rounds/all/grouped-by-user",
     );
-    console.log(response);
 
     return response.data;
   };

@@ -29,23 +29,16 @@ export default function AuthPage() {
 
     login(payload, {
       onSuccess: (response) => {
-        console.log("Login berhasil:", response);
-
         const { accessToken, refreshToken } = response.data;
 
         localStorage.setItem("accessToken", accessToken);
         localStorage.setItem("refreshToken", refreshToken);
 
-        console.log(
-          "Access token tersimpan:",
-          Boolean(localStorage.getItem("accessToken")),
-        );
-
         navigate("/", { replace: true });
       },
 
       onError: (err) => {
-        console.error("Login gagal:", err);
+        alert(err);
         setError("Username atau password tidak valid.");
       },
     });

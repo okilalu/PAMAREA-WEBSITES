@@ -127,7 +127,6 @@ const ManageSchedule = () => {
   const createSingleData = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedSchedule) {
-      console.log("Pilih jadwal shift terlebih dahulu.");
       return;
     }
 
@@ -150,7 +149,7 @@ const ManageSchedule = () => {
     };
 
     try {
-      const result = await assignUser({
+      await assignUser({
         scheduleId: selectedSchedule.id,
         payload,
       });
@@ -161,7 +160,6 @@ const ManageSchedule = () => {
       setSelectedSchedule(null);
 
       alert("Success create data");
-      console.log("Berhasil create data", result);
       closeModal("assignment_single");
     } catch (error) {
       console.log("Gagal saat assign user", error);
@@ -568,7 +566,6 @@ const ManageSchedule = () => {
                     value={startDate}
                     onChange={(e) => {
                       setStartDate(e.target.value);
-                      console.log(startDate);
                     }}
                     required
                     className="bg-gray-100 rounded-sm text-gray-600 p-2 w-full"
@@ -592,7 +589,6 @@ const ManageSchedule = () => {
                     min={startDate || undefined}
                     onChange={(e) => {
                       setEndDate(e.target.value);
-                      console.log(endDate);
                     }}
                     className="bg-gray-100 rounded-sm text-gray-600 p-2 w-full"
                   />
@@ -637,7 +633,6 @@ const ManageSchedule = () => {
                             checked={isSelected}
                             onChange={() => {
                               setSelectedUserId(item.id);
-                              console.log(selectedUserId);
                             }}
                             disabled={!isAvailable}
                             className={`radio radio-xs ${

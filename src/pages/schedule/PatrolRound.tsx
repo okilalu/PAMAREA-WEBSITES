@@ -32,8 +32,6 @@ const PatrolRound = ({ onSetupRound }: PatrolRoundProps) => {
     // refetch,
   } = usePatrolRoundsGroupedByUser();
 
-  console.log("PATROL ROUND", JSON.stringify(patrolRounds, null, 2));
-
   const [search, setSearch] = useState("");
   const [selectedShift, setSelectedShift] = useState("ALL");
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<

@@ -20,113 +20,6 @@ export interface FindingExcelItem {
     fileUrl: string;
   }> | null;
 }
-
-// interface ExcelImageData {
-//   base64: string;
-//   extension: "png" | "jpeg" | "gif";
-// }
-
-// interface ExcelImageData {
-//   base64: string;
-//   extension: "png" | "jpeg" | "gif";
-// }
-
-// const fetchImageAsBase64 = async (
-//   imageUrl: string,
-// ): Promise<ExcelImageData | null> => {
-//   try {
-//     console.log("MENGAMBIL FOTO EXCEL:", imageUrl);
-
-//     const response = await fetch(imageUrl);
-
-//     if (!response.ok) {
-//       console.error("GAGAL MENGAMBIL FOTO EXCEL:", {
-//         imageUrl,
-//         status: response.status,
-//         statusText: response.statusText,
-//       });
-
-//       return null;
-//     }
-
-//     const blob = await response.blob();
-
-//     console.log("RESPONS FOTO EXCEL:", {
-//       imageUrl,
-//       contentType: response.headers.get("content-type"),
-//       blobType: blob.type,
-//       blobSize: blob.size,
-//     });
-
-//     if (blob.size === 0 || !blob.type.startsWith("image/")) {
-//       console.error("DATA FOTO TIDAK VALID:", {
-//         imageUrl,
-//         blobType: blob.type,
-//         blobSize: blob.size,
-//       });
-
-//       return null;
-//     }
-
-//     const base64 = await new Promise<string>((resolve, reject) => {
-//       const reader = new FileReader();
-
-//       reader.onload = () => {
-//         if (typeof reader.result === "string") {
-//           resolve(reader.result);
-//         } else {
-//           reject(new Error("Gagal mengubah foto menjadi Base64."));
-//         }
-//       };
-
-//       reader.onerror = () => {
-//         reject(new Error("Gagal membaca file foto."));
-//       };
-
-//       reader.readAsDataURL(blob);
-//     });
-
-//     const mimeType = blob.type.split(";")[0].toLowerCase();
-
-//     let extension: ExcelImageData["extension"];
-
-//     switch (mimeType) {
-//       case "image/png":
-//         extension = "png";
-//         break;
-
-//       case "image/gif":
-//         extension = "gif";
-//         break;
-
-//       case "image/jpeg":
-//       case "image/jpg":
-//         extension = "jpeg";
-//         break;
-
-//       default:
-//         console.error("FORMAT FOTO BELUM DIDUKUNG:", {
-//           imageUrl,
-//           mimeType,
-//         });
-
-//         return null;
-//     }
-
-//     return {
-//       base64,
-//       extension,
-//     };
-//   } catch (error) {
-//     console.error("ERROR FETCH FOTO EXCEL:", {
-//       imageUrl,
-//       error,
-//     });
-
-//     return null;
-//   }
-// };
-
 /**
  * Export laporan temuan hazard ke Excel.
  */
@@ -395,12 +288,6 @@ export const exportFindingExcel = async (
   if (blob.size === 0) {
     throw new Error("File Excel kosong dan tidak dapat diunduh.");
   }
-
-  console.log("EXCEL EXPORT DEBUG", {
-    bufferLength: buffer.byteLength,
-    blobSize: blob.size,
-    mimeType: blob.type,
-  });
 
   // Buat URL untuk file Excel.
   const url = URL.createObjectURL(blob);

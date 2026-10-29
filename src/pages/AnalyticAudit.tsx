@@ -115,8 +115,6 @@ const AnalyticAudit = () => {
   const logs = result?.data ?? [];
   const meta = result?.meta;
 
-  console.log("DATA", JSON.stringify(logs, null, 2));
-
   const filteredLogs = useMemo(() => {
     const keyword = searchTerm.trim().toLowerCase();
 
@@ -572,8 +570,6 @@ const AnalyticAudit = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      console.log("CLICK");
-
                       goToPage(currentPage - 1);
                     }}
                     disabled={currentPage <= 1}

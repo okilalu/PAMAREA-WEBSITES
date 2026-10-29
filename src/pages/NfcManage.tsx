@@ -235,14 +235,8 @@ const NfcManage = () => {
       setUid("");
       setIsAssignCheckpoint(false);
       setSelectedCheckpointId(null);
-
-      console.log(
-        isAssignCheckpoint
-          ? "NFC berhasil diaktifkan dan dihubungkan ke checkpoint."
-          : "NFC berhasil diaktifkan tanpa penugasan checkpoint.",
-      );
     } catch (error) {
-      console.error("Gagal memproses aktivasi NFC:", error);
+      alert(error);
     }
   };
   return (

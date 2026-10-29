@@ -71,8 +71,6 @@ const ScheduleManage = () => {
   );
 
   const assignment = scheduleAssigment ?? [];
-  console.log("Roster", JSON.stringify(roster, null, 2));
-  // console.log("Schedule Assignment", JSON.stringify(assignment, null, 2));
 
   const { mutateAsync: createPS } = useCreatePatrolSchedule();
   const { mutateAsync: createDates } = useCreatePatrolScheduleDates();
@@ -167,8 +165,6 @@ const ScheduleManage = () => {
 
   const activeSecurity =
     userSecurity?.data.filter((s) => s.status === "ACTIVE") ?? [];
-
-  // console.log("Draft Schedule", JSON.stringify(activeSecurity, null, 2));
 
   const searchSecurity = activeSecurity.filter((item) => {
     const searchSecurity = search.singleSecurity.toLowerCase();
@@ -424,15 +420,8 @@ const ScheduleManage = () => {
       points,
     };
 
-    console.log(
-      "PAYLOAD CREATE PATROL SCHEDULE:",
-      JSON.stringify(payload, null, 2),
-    );
-
     try {
       const response = await createPS(payload);
-
-      console.log("Jadwal patroli berhasil dibuat:", response);
 
       const scheduleId = response.id;
 
@@ -471,8 +460,6 @@ const ScheduleManage = () => {
         scheduleId: createdScheduleId,
         payload,
       });
-
-      console.log("Berhasil menambahkan tanggal jadwal patroli:", payload);
 
       // Berpindah ke Step 3 setelah tanggal berhasil disimpan.
       setCurrentStep(3);
@@ -518,21 +505,19 @@ const ScheduleManage = () => {
         });
       }
 
-      console.log("Assignment security berhasil dibuat.");
-
       handleCloseModal();
     } catch (error) {
-      console.error("Error saat membuat assignment security:", error);
+      alert(error);
     }
   };
 
   const handleActivateSchedule = (id: string) => {
     activateSchedule(id, {
       onSuccess: (data) => {
-        console.log("Schedule berhasil diaktifkan:", data);
+        alert(data);
       },
       onError: (error) => {
-        console.error("Gagal mengaktifkan schedule:", error);
+        alert(error);
       },
     });
   };
@@ -556,14 +541,13 @@ const ScheduleManage = () => {
     };
 
     try {
-      const result = await assignUser({ scheduleId, payload });
+      await assignUser({ scheduleId, payload });
 
       setSelectedShift("");
       setStartDate("");
       setEndDate("");
       setSelectedUserId("");
       alert("Success create data");
-      console.log("Berhasil create data", result);
     } catch (error) {
       console.log("Gagal saat assign user", error);
     }
@@ -623,8 +607,6 @@ const ScheduleManage = () => {
     try {
       await shiftChange(payload);
 
-      console.log("Pertukaran shift berhasil diajukan.");
-
       // Reset form setelah berhasil
       setFirstAssignmentId("");
       setSecondAssignmentId("");
@@ -674,8 +656,6 @@ const ScheduleManage = () => {
 
     try {
       await bulkUser(payload);
-
-      console.log("Penugasan beberapa shift berhasil disimpan.");
 
       setSelectedUserId("");
       setSelectedScheduleIds([]);
@@ -1100,7 +1080,6 @@ const ScheduleManage = () => {
                             type="button"
                             onClick={() => {
                               setSelectedShift(item.name);
-                              console.log(selectedShift);
 
                               // Simpan ID jadwal yang dipilih.
                               setSchedule({
@@ -1140,7 +1119,6 @@ const ScheduleManage = () => {
                     value={startDate}
                     onChange={(e) => {
                       setStartDate(e.target.value);
-                      console.log(startDate);
                     }}
                     required
                     className="bg-gray-100 rounded-sm text-gray-600 p-2 w-full"
@@ -1164,7 +1142,6 @@ const ScheduleManage = () => {
                     min={startDate || undefined}
                     onChange={(e) => {
                       setEndDate(e.target.value);
-                      console.log(endDate);
                     }}
                     className="bg-gray-100 rounded-sm text-gray-600 p-2 w-full"
                   />
@@ -1209,7 +1186,6 @@ const ScheduleManage = () => {
                             checked={isSelected}
                             onChange={() => {
                               setSelectedUserId(item.id);
-                              console.log(selectedUserId);
                             }}
                             disabled={!isAvailable}
                             className={`radio radio-xs ${

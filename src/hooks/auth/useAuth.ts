@@ -51,7 +51,7 @@ export const useLogin = () => {
       });
     },
     onError(error) {
-      console.log(error);
+      alert(error);
     },
   });
 };

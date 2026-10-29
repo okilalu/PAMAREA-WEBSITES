@@ -19,8 +19,6 @@ const ManageFinding = () => {
   const itemsPerPage = 5;
   const dataFinding = findings?.data ?? [];
 
-  console.log("FINDING", JSON.stringify(dataFinding, null, 2));
-
   const filteredData = useMemo(() => {
     const titleSearch = search.title.trim().toLowerCase();
     const reportBySearch = search.reportBy.trim().toLowerCase();

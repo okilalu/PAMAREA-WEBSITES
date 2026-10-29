@@ -105,9 +105,6 @@ const PatrolSchedule = () => {
       .sort((a, b) => a.sequence - b.sequence);
   }, [activePatrolPoints, selectedSchedule]);
 
-  console.log("SelectedSchedule", JSON.stringify(selectedSchedule, null, 2));
-  console.log("REGITERDATA", JSON.stringify(registeredPatrolPoints, null, 2));
-
   const availablePatrolPoints = useMemo(() => {
     const registeredIds = new Set(
       registeredPatrolPoints.map((point) => point.patrolPointId),
@@ -253,15 +250,8 @@ const PatrolSchedule = () => {
       points,
     };
 
-    console.log(
-      "PAYLOAD CREATE PATROL SCHEDULE:",
-      JSON.stringify(payload, null, 2),
-    );
-
     try {
-      const response = await createPS(payload);
-
-      console.log("Jadwal patroli berhasil dibuat:", response);
+      await createPS(payload);
 
       closeModal("add_schedule");
 
@@ -285,8 +275,6 @@ const PatrolSchedule = () => {
 
     if (!confirmed) return;
 
-    console.log("Hapus jadwal:", schedule.id);
-
     // Hubungkan ke mutation delete dari backend.
     try {
       await deleteShift(schedule.id);
@@ -298,7 +286,6 @@ const PatrolSchedule = () => {
   const handleEditSchedule = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedSchedule) {
-      console.log("Schedule tidak ada");
       return;
     }
 
@@ -330,7 +317,6 @@ const PatrolSchedule = () => {
       gracePeriodMinutes: updateGracePeriodMinutes,
       enforceSequence: updateEnforceSequence,
     };
-    console.log("UPDATE PAYLOD", JSON.stringify(payload, null, 2));
 
     try {
       await updateShift({ id: selectedSchedule.id, payload });
@@ -344,7 +330,6 @@ const PatrolSchedule = () => {
   const handleAddPoint = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedSchedule) {
-      console.log("Schedule tidak ada");
       return;
     }
 
@@ -369,17 +354,6 @@ const PatrolSchedule = () => {
       insertAtSequence,
       required,
     };
-    console.log(
-      "ADD PATROL POINT PAYLOAD:",
-      JSON.stringify(
-        {
-          scheduleId: selectedSchedule.id,
-          ...payload,
-        },
-        null,
-        2,
-      ),
-    );
 
     try {
       await addPoint({ scheduleId: selectedSchedule.id, payload });
@@ -402,9 +376,8 @@ const PatrolSchedule = () => {
     setActivatingScheduleId(scheduleId);
 
     try {
-      const result = await activateSchedule(scheduleId);
+      await activateSchedule(scheduleId);
       closeModal("activate_shift");
-      console.log("Schedule berhasil diaktifkan: ", result);
     } catch (error) {
       console.error("Gagal mengaktifkan schedule:", error);
     }

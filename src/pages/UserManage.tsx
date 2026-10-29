@@ -70,18 +70,6 @@ const UserManage = () => {
 
   const users = listUsers?.data ?? [];
 
-  // console.log("USERS", JSON.stringify(teams, null, 2));
-
-  // const listRegu = useMemo(() => {
-  //   return Array.from(
-  //     new Set(
-  //       teams
-  //         ?.map((item) => item.name)
-  //         .filter((name): name is string => Boolean(name)),
-  //     ),
-  //   );
-  // }, [teams]);
-
   const roles = rolesResponse?.data ?? [];
   const team = teams ?? [];
 
@@ -342,13 +330,6 @@ const UserManage = () => {
       ...(selectedTeamId ? { teamId: selectedTeamId } : {}),
     };
 
-    console.log("ROLE DIPILIH:", selectedRoleData);
-    console.log("ROLE NAME:", normalizedRoleName);
-    console.log("TEAM ID:", selectedTeamId);
-    console.log("TEAM ID:", selectedTeamId);
-
-    console.log("PAYLOAD REGISTER USER", payload);
-
     try {
       await register(payload);
 
@@ -568,7 +549,7 @@ const UserManage = () => {
 
       setRegisterSuccess("User berhasil dihapus.");
     } catch (error) {
-      console.log(error);
+      alert(error);
       setRegisterError("Gagal menghapus user. Silakan coba kembali.");
     }
   };
@@ -614,7 +595,7 @@ const UserManage = () => {
   const handleCreateTeam = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!siteId) {
-      console.log("Site ID harus diisi");
+      return;
     }
 
     const payload: CreateTeamPayload = {
@@ -624,11 +605,9 @@ const UserManage = () => {
       description: teamDescription,
     };
 
-    console.log("PAYLOAD", JSON.stringify(payload, null, 2));
-
     try {
       await createTeam(payload);
-      console.log("Berhasil create team");
+      alert("Berhasil create team");
 
       closeModal("add_team");
     } catch (error) {

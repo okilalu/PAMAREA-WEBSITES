@@ -1,11 +1,9 @@
 import {
   Box,
-  Card,
   CloseCircle,
   LinkSquare,
   Location,
   LocationAdd,
-  Pointer,
   SearchNormal,
   TickCircle,
   UserAdd,
@@ -23,7 +21,6 @@ const Checkpoint = () => {
   const siteId = user?.siteId;
   const [search, setSearch] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("Semua");
-  // const [selectedNfc, setSelectedNfc] = useState("Semua");
   const { mutateAsync: createCheckpoint, isPending: isRegitering } =
     useCreatePatrolPoint();
 
@@ -37,8 +34,6 @@ const Checkpoint = () => {
 
   const [registerError, setRegisterError] = useState("");
   const [registerSuccess, setRegisterSuccess] = useState("");
-
-  // console.log("DATA", JSON.stringify(listCheckpoints, null, 2));
 
   const filterStatus = [
     {
@@ -178,8 +173,6 @@ const Checkpoint = () => {
       siteId,
     };
 
-    console.log("PAYLOAD", JSON.stringify(payload, null, 2));
-
     try {
       await createCheckpoint(payload);
 
@@ -187,7 +180,7 @@ const Checkpoint = () => {
       resetRegisterForm();
       handleCloseModal();
     } catch (error) {
-      console.log(error);
+      alert(error);
       alert("Error. saat tambah patrol point");
     }
   };
@@ -212,8 +205,6 @@ const Checkpoint = () => {
       </div>
     );
   }
-
-  console.log("POINT", JSON.stringify(listCheckpoints, null, 2));
 
   return (
     <div className="min-h-screen">
@@ -297,9 +288,6 @@ const Checkpoint = () => {
                 >
                   {item.name}
                 </p>
-                {/* <div className="bg-blue-100 rounded-full px-2 py-1">
-                  <p className="text-gray-800 text-xs">{item.value}</p>
-                </div> */}
               </button>
             ))}
           </div>
@@ -421,7 +409,7 @@ const Checkpoint = () => {
                   )}
                   {/* </div> */}
 
-                  <div className="flex items-center justify-evenly gap-2 mt-auto pt-5">
+                  {/* <div className="flex items-center justify-evenly gap-2 mt-auto pt-5">
                     <button className="bg-gray-100 rounded-sm py-1 items-center justify-center flex-1 cursor-pointer">
                       <p>Edit Titik</p>
                     </button>
@@ -440,7 +428,7 @@ const Checkpoint = () => {
                         </p>
                       </button>
                     )}
-                  </div>
+                  </div> */}
                 </div>
               );
             })

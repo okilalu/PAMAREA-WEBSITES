@@ -2,7 +2,6 @@ import {
   AddCircle,
   Additem,
   CloseCircle,
-  Edit,
   HashtagDown,
   Radio,
   Sun,
@@ -11,8 +10,7 @@ import {
   TickCircle,
   Trash,
 } from "iconsax-react";
-import React, { useMemo, useState } from "react";
-import { usePatrolPoints } from "../hooks/patrol-point/usePatrolPoints";
+import React, { useState } from "react";
 import {
   useActiveQuestions,
   useCreateQuestion,
@@ -27,147 +25,9 @@ import type {
 const QuestionBuilder = () => {
   const [patrolPointId] = useState("");
   const { data: activeQuestions } = useActiveQuestions(patrolPointId);
-  // const [selectedCheckpointQuestion, setselectedCheckpointQuestion] =
-  //   useState("");
-
-  // const questionBuilder = [
-  //   {
-  //     id: 1,
-  //     ids: "Q-Sec-001",
-  //     question:
-  //       "Apakah kondisi pagar di area checkpoint dalam kondisi baik dan tidak mengalami kerusakan?",
-  //     type: "YES_NO",
-  //     required: true,
-  //     requireReasonIfNo: true,
-  //     category: "Keamanan Area",
-  //     status: "Aktif",
-  //     checkpoint: "Gedung Kontrol",
-  //   },
-  //   {
-  //     id: 2,
-  //     ids: "Q-Sec-001",
-  //     question:
-  //       "Apakah pintu atau akses masuk checkpoint dalam kondisi tertutup dan terkunci dengan baik?",
-  //     type: "YES_NO",
-  //     required: true,
-  //     requireReasonIfNo: true,
-  //     category: "Akses",
-  //     status: "Aktif",
-  //     checkpoint: "Gedung Kontrol 2",
-  //   },
-  //   {
-  //     id: 3,
-  //     ids: "Q-Sec-001",
-  //     question:
-  //       "Apakah area sekitar checkpoint bebas dari benda mencurigakan atau barang yang tidak seharusnya berada di lokasi?",
-  //     type: "YES_NO",
-  //     required: true,
-  //     requireReasonIfNo: true,
-  //     category: "Keamanan Area",
-  //     status: "Aktif",
-  //     checkpoint: "Gedung Kontrol",
-  //   },
-  //   {
-  //     id: 4,
-  //     ids: "Q-Sec-001",
-  //     question:
-  //       "Apakah lampu penerangan di sekitar checkpoint berfungsi dengan baik?",
-  //     type: "YES_NO",
-  //     required: true,
-  //     requireReasonIfNo: true,
-  //     category: "Fasilitas",
-  //     status: "Aktif",
-  //     checkpoint: "Gedung Kontrol 2",
-  //   },
-  //   {
-  //     id: 5,
-  //     ids: "Q-Sec-001",
-  //     question:
-  //       "Apakah CCTV di sekitar checkpoint terlihat aktif dan tidak mengalami gangguan?",
-  //     type: "YES_NO",
-  //     required: true,
-  //     requireReasonIfNo: true,
-  //     category: "Monitoring",
-  //     status: "Aktif",
-  //     checkpoint: "Gedung Kontrol 2",
-  //   },
-  //   {
-  //     id: 6,
-  //     ids: "Q-Sec-001",
-  //     question:
-  //       "Apakah kondisi peralatan keselamatan di sekitar checkpoint dalam keadaan lengkap dan mudah diakses?",
-  //     type: "YES_NO",
-  //     required: true,
-  //     requireReasonIfNo: true,
-  //     category: "Keselamatan",
-  //     status: "Aktif",
-  //     checkpoint: "Gedung Kontrol 2",
-  //   },
-  //   {
-  //     id: 7,
-  //     ids: "Q-Sec-001",
-  //     question:
-  //       "Apakah tidak terdapat genangan air atau kondisi lingkungan yang berpotensi membahayakan di sekitar checkpoint?",
-  //     type: "YES_NO",
-  //     required: true,
-  //     requireReasonIfNo: true,
-  //     category: "Lingkungan",
-  //     status: "Aktif",
-  //     checkpoint: "Gedung Kontrol",
-  //   },
-  //   {
-  //     id: 8,
-  //     ids: "Q-Sec-001",
-  //     question:
-  //       "Apakah area checkpoint dalam kondisi bersih dan bebas dari sampah atau material yang mengganggu?",
-  //     type: "YES_NO",
-  //     required: true,
-  //     requireReasonIfNo: true,
-  //     category: "Kebersihan",
-  //     status: "Aktif",
-  //     checkpoint: "Gedung Kontrol 2",
-  //   },
-  //   {
-  //     id: 9,
-  //     ids: "Q-Sec-001",
-  //     question:
-  //       "Apakah terdapat aktivitas atau orang yang mencurigakan di sekitar checkpoint?",
-  //     type: "YES_NO",
-  //     required: true,
-  //     requireReasonIfNo: true,
-  //     category: "Keamanan",
-  //     status: "Aktif",
-  //     checkpoint: "Gedung Kontrol",
-  //   },
-  //   {
-  //     id: 10,
-  //     ids: "Q-Sec-001",
-  //     question:
-  //       "Apakah seluruh kondisi checkpoint secara keseluruhan dalam keadaan aman dan normal?",
-  //     type: "YES_NO",
-  //     required: true,
-  //     requireReasonIfNo: true,
-  //     category: "Kondisi Umum",
-  //     status: "Aktif",
-  //     checkpoint: "Gedung Kontrol 2",
-  //   },
-  // ];
-
-  // const filterQuestion = useMemo(() => {
-  //   return questionBuilder.filter((q) => {
-  //     return selectedCheckpoint === q.checkpoint;
-  //   });
-  // }, [selectedCheckpoint]);
-
-  // const { data: questions } = useQuestions();
-  console.log("QUESTION", JSON.stringify(activeQuestions, null, 2));
-  const { data: checkpoint } = usePatrolPoints();
   const { mutateAsync: questionBuilder, isPending } = useCreateQuestion();
   const { mutateAsync: deactivateQuestion, isPending: isDeactivating } =
     useDeactivateQuestion();
-  // const { mutateAsync: createQuestionOption } = useCreateQuestionOption();
-
-  // const [code, setCode] = useState("");
   const [questionText, setQuestionText] = useState("");
   const [questionType, setQuestionType] = useState<QuestionType>("YES_NO");
   const [isRequired, setIsRequired] = useState<boolean>(true);
@@ -181,11 +41,6 @@ const QuestionBuilder = () => {
       isSafe: false,
     },
   ]);
-  const checkpointList = useMemo(() => {
-    return [...new Set(checkpoint?.map((q) => q.name))];
-  }, [checkpoint]);
-
-  console.log(checkpointList);
 
   const handelOpenModal = () => {
     const modal = document.getElementById(
@@ -261,9 +116,7 @@ const QuestionBuilder = () => {
     };
 
     try {
-      const createdQuestion = await questionBuilder(payload);
-
-      console.log("Pertanyaan berhasil dibuat:", createdQuestion);
+      await questionBuilder(payload);
 
       setQuestionText("");
       setQuestionType("YES_NO");
@@ -278,8 +131,6 @@ const QuestionBuilder = () => {
       ]);
 
       setFormError("");
-
-      console.log("PAYLOAD", JSON.stringify(createdQuestion, null, 2));
 
       handleCloseModal();
     } catch (error) {
@@ -332,7 +183,6 @@ const QuestionBuilder = () => {
       await deactivateQuestion(id);
 
       alert("Berhasil menonaktifkan pertanyaan");
-      console.log("Pertanyaan berhasil dinonaktifkan.");
     } catch (error) {
       alert("Error saat menonaktifkan pertanyaan");
       console.error("Gagal menonaktifkan pertanyaan:", error);
@@ -772,12 +622,12 @@ const QuestionBuilder = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-1 cursor-pointer">
+                    {/* <button className="flex items-center gap-1 cursor-pointer">
                       <Edit size={17} color="gray" />
                       <p className="text-xs text-gray-500 tracking-wide">
                         Edit
                       </p>
-                    </button>
+                    </button> */}
                     <button
                       className="flex items-center gap-1 cursor-pointer"
                       onClick={() => handleDeactivateQuestion(item.id)}
@@ -809,7 +659,7 @@ const QuestionBuilder = () => {
           </div>
         </div>
 
-        {(activeQuestions?.length ?? 0 > 0) ? (
+        {/* {(activeQuestions?.length ?? 0 > 0) ? (
           <button className="bg-gray-200 rounded-lg py-3 w-full">
             <div className="flex items-center justify-center gap-2 flex-1">
               <AddCircle size={17} color="gray" />
@@ -820,7 +670,7 @@ const QuestionBuilder = () => {
           </button>
         ) : (
           <></>
-        )}
+        )} */}
       </div>
     </div>
   );
