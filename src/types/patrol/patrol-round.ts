@@ -63,9 +63,15 @@ export interface PatrolRound {
 }
 
 export interface PatrolRoundListResponse {
+  userId: string;
   date: string;
   totalRounds: number;
   data: PatrolRound[];
+}
+
+export interface GetPatrolRoundsByUserParams {
+  userId: string;
+  date?: string;
 }
 
 export interface PatrolRoundQuery {
@@ -101,11 +107,3 @@ export interface UpdatePatrolRoundRequest {
   startedAt?: string | null;
   completedAt?: string | null;
 }
-
-// export interface PatrolRoundQuery {
-//   scheduleDateId?: string;
-//   assignmentId?: string;
-//   status?: PatrolRoundStatus;
-//   startDate?: string;
-//   endDate?: string;
-// }

@@ -1,4 +1,4 @@
-import type { UserStatus } from "../enums/prisma-enums";
+import type { TeamStatus, UserStatus } from "../enums/prisma-enums";
 
 import type { Role } from "./role";
 import type { Site } from "../site/site";
@@ -6,6 +6,7 @@ import type { Site } from "../site/site";
 export interface UserResponse {
   id: string;
   roleId: string;
+  teamId: string;
   siteId: string | null;
 
   employeeNumber: string | null;
@@ -25,6 +26,7 @@ export interface UserResponse {
 
   role?: Role;
   site?: Site | null;
+  team?: Team | null;
 }
 
 export interface CreateUserRequest {
@@ -34,9 +36,11 @@ export interface CreateUserRequest {
   email?: string | null;
   phone?: string | null;
   password: string;
+  team?: CreateTeamUser;
 
   roleId: string;
   siteId?: string | null;
+  teamId?: string | null;
 
   // status?: UserStatus;
 }
@@ -48,9 +52,11 @@ export interface UpdateUserRequest {
   email?: string | null;
   phone?: string | null;
   password?: string;
+  team?: UpdateTeamUser;
 
   roleId?: string;
   siteId?: string | null;
+  teamId?: string | null;
 
   // status?: UserStatus;
 }
@@ -74,4 +80,29 @@ export interface UserSummary {
   username: string;
   employeeNumber: string | null;
   status: UserStatus;
+}
+
+export interface Team {
+  id: string;
+  siteId: string;
+  name: string;
+  code: string;
+  description: string | null;
+  status: TeamStatus;
+  createdAt: string;
+  updatedAt: string;
+
+  site?: Site;
+  users?: UserResponse[];
+}
+
+export interface UpdateTeamUser {
+  name: string;
+  code: string;
+  description?: string | null;
+}
+export interface CreateTeamUser {
+  name: string;
+  code: string;
+  description?: string | null;
 }

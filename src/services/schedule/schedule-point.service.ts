@@ -1,4 +1,5 @@
 import { apiClient } from "../../lib/apiClient";
+import type { AddSchedulePointPayload } from "../../types";
 
 import type {
   PatrolSchedulePoint,
@@ -68,6 +69,19 @@ export const deleteSchedulePoint = async (
 ): Promise<DeleteSchedulePointResponse> => {
   const response = await apiClient.delete<DeleteSchedulePointResponse>(
     `/patrol-schedules/${scheduleId}/points/${pointId}`,
+  );
+
+  return response.data;
+};
+
+// Menambahkan point ke schedule
+export const addSchedulePoint = async (
+  scheduleId: string,
+  payload: AddSchedulePointPayload,
+): Promise<PatrolSchedulePoint> => {
+  const response = await apiClient.post<PatrolSchedulePoint>(
+    `/patrol-schedules-points/${scheduleId}/new-point`,
+    payload,
   );
 
   return response.data;

@@ -7,6 +7,7 @@ export type RoleName =
   | "CHIEF_SECURITY";
 
 export type UserStatus = "ACTIVE" | "INACTIVE";
+export type TeamStatus = "ACTIVE" | "INACTIVE";
 
 export type SiteStatus = "ACTIVE" | "INACTIVE";
 

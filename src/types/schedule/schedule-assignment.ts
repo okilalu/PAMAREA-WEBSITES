@@ -1,5 +1,6 @@
 import type { ScheduleAssignmentStatus } from "../enums/prisma-enums";
 import type { UserResponse } from "../user/user";
+import type { PatrolSchedule } from "./patrol-schedule";
 // import type { PatrolSchedule } from "./patrol-schedule";
 
 export interface ScheduleAssignmentUser {
@@ -20,7 +21,7 @@ export interface PatrolScheduleAssignment {
   createdAt: string;
   updatedAt: string;
 
-  // schedule?: PatrolSchedule;
+  schedule?: PatrolSchedule;
   user?: ScheduleAssignmentUser;
 }
 

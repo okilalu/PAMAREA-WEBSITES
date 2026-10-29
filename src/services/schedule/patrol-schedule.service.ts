@@ -12,14 +12,11 @@ import type {
   ExtendScheduleDatesResponse,
   AddScheduleAssignmentPayload,
   UpdateScheduleAssignmentPayload,
-  AddSchedulePointPayload,
   DeleteScheduleResponse,
   PatrolScheduleMutationResponse,
 } from "../../types/schedule/patrol-schedule";
 
 import type { PatrolScheduleAssignment } from "../../types/schedule/schedule-assignment";
-
-import type { PatrolSchedulePoint } from "../../types/schedule/schedule-point";
 
 // Mengambil daftar schedule dengan filter dan pagination
 export const getPatrolSchedules = async (
@@ -176,19 +173,6 @@ export const updateScheduleAssignment = async (
 ): Promise<PatrolScheduleAssignment> => {
   const response = await apiClient.patch<PatrolScheduleAssignment>(
     `/patrol-schedules/assignments/${assignmentId}`,
-    payload,
-  );
-
-  return response.data;
-};
-
-// Menambahkan point ke schedule
-export const addSchedulePoint = async (
-  scheduleId: string,
-  payload: AddSchedulePointPayload,
-): Promise<PatrolSchedulePoint> => {
-  const response = await apiClient.post<PatrolSchedulePoint>(
-    `/patrol-schedules/${scheduleId}/points`,
     payload,
   );
 

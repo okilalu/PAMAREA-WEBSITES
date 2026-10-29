@@ -6,6 +6,7 @@ import type {
   QuestionType,
   PhotoRequirement,
 } from "../enums/prisma-enums";
+import type { PatrolSchedulePoint } from "../schedule/schedule-point";
 
 import type { Site } from "../site/site";
 
@@ -104,6 +105,7 @@ export interface PatrolPointBase {
 export interface PatrolPointResponse extends PatrolPointBase {
   site: PatrolPointSiteSummary;
   nfcAssignments: PatrolPointNfcAssignment[];
+  schedulePoints: PatrolSchedulePoint[];
   _count: PatrolPointCount;
 }
 
