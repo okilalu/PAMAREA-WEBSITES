@@ -11,6 +11,7 @@ import {
 
 import { useGetScheduleAssigments } from "../../hooks/schedule/usePatrolScheduleAssignment";
 import { usePatrolRoundsGroupedByUser } from "../../hooks/schedule/usePatrolRound";
+import Breadcrumb from "../../components/breadcrumbs/Breadcrumb";
 
 type PatrolRoundProps = {
   onSetupRound: (roundId: string) => void;
@@ -186,28 +187,13 @@ const PatrolRound = ({ onSetupRound }: PatrolRoundProps) => {
 
   return (
     <div className="min-h-screen">
-      <div className="px-6 flex justify-between breadcrumbs text-sm bg-white border-b border-gray-200 h-14">
-        <ul className="mt-2">
-          <li>
-            <a className="text-gray-700 font-semibold">Dashboard</a>
-          </li>
-          <li>
-            <a className="text-gray-700 font-semibold">Command Center</a>
-          </li>
-          <li className="text-gray-700 font-semibold">Add Document</li>
-        </ul>
-        <div className="flex gap-2">
-          <div className="bg-black rounded-full px-2 py-1">
-            <p className="text-white text-lg font-bold mt-0.5">LO</p>
-          </div>
-          <div>
-            <h2 className="text-gray-800 text-sm font-semibold">Lalu Oki</h2>
-            <p className="text-gray-600 text-xs tracking-wider">
-              Chief Patrol Supervisor
-            </p>
-          </div>
-        </div>
-      </div>
+      <Breadcrumb
+        items={[
+          { label: "Dashboard", path: "/" },
+          { label: "Operational Patrol" },
+          { label: "Atur Round" },
+        ]}
+      />
 
       <div className="space-y-5 px-6 pb-6">
         <div className="my-5 grid grid-cols-2 gap-4">

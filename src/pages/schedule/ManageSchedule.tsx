@@ -1,5 +1,4 @@
 import {
-  AddSquare,
   BoxTime,
   Calendar,
   CalendarAdd,
@@ -20,6 +19,7 @@ import type {
   CreateScheduleAssignmentPayload,
   PatrolScheduleListItem,
 } from "../../types";
+import Breadcrumb from "../../components/breadcrumbs/Breadcrumb";
 
 const ManageSchedule = () => {
   const { data: patrolSchedule } = usePatrolSchedules();
@@ -168,28 +168,13 @@ const ManageSchedule = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="px-6 flex justify-between breadcrumbs text-sm bg-white border-b border-gray-200 h-14">
-        <ul className="mt-2">
-          <li>
-            <a className="text-gray-700 font-semibold">Dashboard</a>
-          </li>
-          <li>
-            <a className="text-gray-700 font-semibold">Command Center</a>
-          </li>
-          <li className="text-gray-700 font-semibold">Add Document</li>
-        </ul>
-        <div className="flex gap-2">
-          <div className="bg-black rounded-full px-2 py-1">
-            <p className="text-white text-lg font-bold mt-0.5">LO</p>
-          </div>
-          <div>
-            <h2 className="text-gray-800 text-sm font-semibold">Lalu Oki</h2>
-            <p className="text-gray-600 text-xs tracking-wider">
-              Chief Patrol Supervisor
-            </p>
-          </div>
-        </div>
-      </div>
+      <Breadcrumb
+        items={[
+          { label: "Dashboard", path: "/" },
+          { label: "Operasional Patrol", path: "/" },
+          { label: "Register Security" },
+        ]}
+      />
 
       <div className="px-6 pb-6">
         <div className="mt-5 grid grid-cols-2 gap-4">
@@ -205,21 +190,6 @@ const ManageSchedule = () => {
               satpam yang bertugas melakukan inspeksi menyeluruh ke seluruh 16
               Checkpoint (Full Circuit Patrol).
             </p>
-          </div>
-          <div className="flex items-center justify-end">
-            <button
-              onClick={() => {
-                (
-                  document.getElementById(
-                    "add_schedule",
-                  ) as HTMLDialogElement | null
-                )?.showModal();
-              }}
-              className="flex items-center bg-[#FED400] rounded-lg px-4 py-2 cursor-pointer"
-            >
-              <AddSquare size={20} color="black" />
-              <p className="text-sm font-semibold ml-2">Buat / Tambah Jadwal</p>
-            </button>
           </div>
         </div>
 

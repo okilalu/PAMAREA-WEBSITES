@@ -17,6 +17,8 @@ import { DocumentDownload, Graph, Task } from "iconsax-react";
 import { usePatrolRoundsGroupedByUser } from "../hooks/schedule/usePatrolRound";
 import { useGetScheduleAssigments } from "../hooks/schedule/usePatrolScheduleAssignment";
 import { usePatrolSchedules } from "../hooks/schedule/usePatrolSchedules";
+import Breadcrumb from "../components/breadcrumbs/Breadcrumb";
+import type { ValueType } from "recharts/types/component/DefaultTooltipContent";
 
 type ShiftFilter = "ALL" | "PAGI" | "SIANG" | "MALAM";
 type PeriodFilter = "TODAY" | "WEEK" | "MONTH";
@@ -116,15 +118,6 @@ const SHIFT_LABELS: Record<ShiftFilter, string> = {
   MALAM: "Shift 3 (Malam)",
 };
 
-/**
- * Mengambil array dari berbagai bentuk respons API.
- *
- * Mendukung:
- * 1. [...]
- * 2. { data: [...] }
- * 3. { data: { data: [...] } }
- * 4. AxiosResponse<{ data: [...] }>
- */
 const extractArray = <T,>(response: unknown): T[] => {
   if (Array.isArray(response)) {
     return response as T[];
@@ -151,10 +144,6 @@ const extractArray = <T,>(response: unknown): T[] => {
   return [];
 };
 
-/**
- * Menghasilkan bagian tanggal YYYY-MM-DD berdasarkan WITA.
- * Tidak menggunakan toISOString() karena itu menghasilkan tanggal UTC.
- */
 const getWitaDateKey = (date: Date): string => {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: TIME_ZONE,
@@ -174,9 +163,6 @@ const getWitaDateKey = (date: Date): string => {
   return `${values.year}-${values.month}-${values.day}`;
 };
 
-/**
- * Mengambil tanggal dan jam berdasarkan WITA.
- */
 const getWitaDateTimeParts = (date: Date) => {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: TIME_ZONE,
@@ -207,10 +193,6 @@ const getWitaDateTimeParts = (date: Date) => {
   };
 };
 
-/**
- * Mengubah tanggal kalender WITA menjadi timestamp.
- * Digunakan agar batas periode konsisten meskipun runtime berbeda zona waktu.
- */
 const getWitaTimestamp = (
   year: number,
   month: number,
@@ -277,17 +259,14 @@ const getShiftFromTime = (time?: string | null): ShiftFilter => {
   const minute = Number(match[2]);
   const timeInMinutes = hour * 60 + minute;
 
-  // Pagi: 07.00–15.59.
   if (timeInMinutes >= 7 * 60 && timeInMinutes < 16 * 60) {
     return "PAGI";
   }
 
-  // Siang/sore: 16.00–21.59.
   if (timeInMinutes >= 16 * 60 && timeInMinutes < 22 * 60) {
     return "SIANG";
   }
 
-  // Malam: 22.00–06.59.
   return "MALAM";
 };
 
@@ -366,7 +345,6 @@ const RealTimeMonitor = () => {
 
   const hasError = isRoundsError || isAssignmentsError || isSchedulesError;
 
-  // Memperbarui waktu saat filter atau render berubah.
   const now = new Date();
 
   const groupedUsers = useMemo<GroupedUser[]>(() => {
@@ -458,7 +436,6 @@ const RealTimeMonitor = () => {
           return;
         }
 
-        // Filter menggunakan timestamp periode WITA.
         if (
           scheduledStartAt.getTime() < periodRange.start.getTime() ||
           scheduledStartAt.getTime() > periodRange.end.getTime()
@@ -468,17 +445,14 @@ const RealTimeMonitor = () => {
 
         diagnostics.roundsInPeriod += 1;
 
-        // Ronde yang dibatalkan tidak dinilai.
         if (round.status === "CANCELLED") {
           return;
         }
 
-        // Ronde mendatang tidak dihitung sebagai kinerja.
         if (scheduledStartAt.getTime() > now.getTime()) {
           return;
         }
 
-        // Ronde yang belum jatuh tempo tidak dinilai.
         if (
           scheduledEndAt &&
           !Number.isNaN(scheduledEndAt.getTime()) &&
@@ -486,15 +460,6 @@ const RealTimeMonitor = () => {
         ) {
           return;
         }
-
-        /*
-         * Hanya ronde yang sudah selesai atau sudah melewati
-         * waktu akhirnya yang dapat masuk penilaian.
-         *
-         * Ronde yang sudah melewati jadwal akhir tetapi statusnya
-         * PENDING tetap dapat dinilai sebagai ronde jatuh tempo.
-         * Namun checkpoint yang belum COMPLETED mendapat nilai 0.
-         */
         diagnostics.roundsFinished += 1;
 
         const assignment =
@@ -536,12 +501,10 @@ const RealTimeMonitor = () => {
         checkpoints.forEach((checkpoint) => {
           diagnostics.checkpointsSeen += 1;
 
-          // Checkpoint opsional tidak masuk penilaian.
           if (checkpoint.required === false) {
             return;
           }
 
-          // Checkpoint dibatalkan tidak masuk penilaian.
           if (checkpoint.status === "CANCELLED") {
             return;
           }
@@ -555,7 +518,6 @@ const RealTimeMonitor = () => {
         });
       });
 
-      // Tidak meranking personel jika tidak ada checkpoint wajib.
       if (totalCheckpoints === 0) {
         return;
       }
@@ -709,39 +671,13 @@ const RealTimeMonitor = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Breadcrumb */}
-      <div className="px-6 flex justify-between items-center breadcrumbs text-sm bg-white border-b border-gray-200 h-14">
-        <ul className="flex gap-2 mt-2">
-          <li>
-            <a className="text-gray-700 font-semibold cursor-pointer">
-              Dashboard
-            </a>
-            <span className="mx-2 text-gray-400">/</span>
-          </li>
-          <li>
-            <a className="text-gray-700 font-semibold cursor-pointer">
-              Command Center
-            </a>
-            <span className="mx-2 text-gray-400">/</span>
-          </li>
-          <li className="text-gray-700 font-semibold">Real-Time Monitor</li>
-        </ul>
-
-        <div className="flex gap-2 items-center">
-          <div className="bg-black rounded-full px-2 py-1 w-8 h-8 flex items-center justify-center">
-            <p className="text-white text-sm font-bold">LO</p>
-          </div>
-
-          <div>
-            <h2 className="text-gray-800 text-sm font-semibold leading-tight">
-              Lalu Oki
-            </h2>
-            <p className="text-gray-500 text-xs tracking-wider">
-              Chief Patrol Supervisor
-            </p>
-          </div>
-        </div>
-      </div>
+      <Breadcrumb
+        items={[
+          { label: "Dashboard", path: "/" },
+          { label: "Reat-Time Monitoring" },
+          { label: "Export Data" },
+        ]}
+      />
 
       <div className="px-6">
         {/* Header Dashboard */}
@@ -965,7 +901,7 @@ const RealTimeMonitor = () => {
 
                         <Tooltip
                           cursor={{ fill: "#f8fafc" }}
-                          formatter={(value: number | undefined) => [
+                          formatter={(value: ValueType | undefined) => [
                             `${Number(value ?? 0).toFixed(1)}%`,
                             "Skor Kinerja",
                           ]}

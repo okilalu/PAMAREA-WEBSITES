@@ -4,6 +4,7 @@ import { useGetScheduleAssigments } from "../../hooks/schedule/usePatrolSchedule
 import type { ShiftChange } from "../../types/schedule/shift-change";
 import { useSecurityUsers } from "../../hooks/users/useUsers";
 import { usePatrolSchedules } from "../../hooks/schedule/usePatrolSchedules";
+import Breadcrumb from "../../components/breadcrumbs/Breadcrumb";
 
 const ShiftChanges = () => {
   const { data: scheduleAssignment } = useGetScheduleAssigments();
@@ -306,37 +307,15 @@ const ShiftChanges = () => {
   return (
     <div className="min-h-screen bg-slate-50/70">
       {/* HEADER / BREADCRUMB */}
-      <div className="flex min-h-14 flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3 sm:px-6 lg:px-8">
-        <div className="breadcrumbs p-0 text-sm">
-          <ul>
-            <li>
-              <span className="text-slate-500">Dashboard</span>
-            </li>
-            <li>
-              <span className="text-slate-500">Manajemen Patroli</span>
-            </li>
-            <li>
-              <span className="font-semibold text-[#00529C]">
-                Pertukaran Shift
-              </span>
-            </li>
-          </ul>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-sm font-bold text-white">
-            LO
-          </div>
-
-          <div>
-            <h2 className="text-sm font-semibold text-slate-800">Lalu Oki</h2>
-            <p className="text-xs text-slate-500">Chief Patrol Supervisor</p>
-          </div>
-        </div>
-      </div>
+      <Breadcrumb
+        items={[
+          { label: "Dashboard", path: "/" },
+          { label: "Operational Patrol" },
+          { label: "Tukar Shift" },
+        ]}
+      />
 
       <main className="mx-auto w-full max-w-[1600px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-        {/* PAGE TITLE */}
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-3">

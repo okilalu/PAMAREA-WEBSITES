@@ -14,6 +14,7 @@ import type { AuditLogListResponse } from "../types";
 import { formatDateTimeWITA } from "../helpers/dateTime";
 import { exportLogsExcel } from "../utils/exportLogsExcel";
 import { getAllAuditLogs } from "../services/audit/audit-log.service";
+import Breadcrumb from "../components/breadcrumbs/Breadcrumb";
 
 const ACTION_LABELS: Record<string, string> = {
   REFRESH_TOKEN: "Memperbarui token autentikasi",
@@ -217,34 +218,15 @@ const AnalyticAudit = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Breadcrumb */}
-      <div className="px-6 flex justify-between breadcrumbs text-sm bg-white border-b border-gray-200 h-14">
-        <ul className="mt-2">
-          <li>
-            <a className="text-gray-700 font-semibold">Dashboard</a>
-          </li>
-          <li>
-            <a className="text-gray-700 font-semibold">Command Center</a>
-          </li>
-          <li className="text-gray-700 font-semibold">Analytic & Audit</li>
-        </ul>
-
-        <div className="flex gap-2">
-          <div className="bg-black rounded-full px-2 py-1">
-            <p className="text-white text-lg font-bold mt-0.5">LO</p>
-          </div>
-
-          <div>
-            <h2 className="text-gray-800 text-sm font-semibold">Lalu Oki</h2>
-            <p className="text-gray-600 text-xs tracking-wider">
-              Chief Patrol Supervisor
-            </p>
-          </div>
-        </div>
-      </div>
+      <Breadcrumb
+        items={[
+          { label: "Dashboard", path: "/" },
+          { label: "Analytic & Audit" },
+          { label: "Export Data" },
+        ]}
+      />
 
       <div className="px-6 mt-5 pb-8">
-        {/* Page Header */}
         <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-1">

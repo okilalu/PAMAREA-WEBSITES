@@ -21,6 +21,7 @@ import type {
   PhotoRequirement,
   QuestionType,
 } from "../types";
+import Breadcrumb from "../components/breadcrumbs/Breadcrumb";
 
 const QuestionBuilder = () => {
   const [patrolPointId] = useState("");
@@ -191,28 +192,13 @@ const QuestionBuilder = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="px-6 flex justify-between breadcrumbs text-sm bg-white border-b border-gray-200 h-14">
-        <ul className="mt-2">
-          <li>
-            <a className="text-gray-700 font-semibold">Dashboard</a>
-          </li>
-          <li>
-            <a className="text-gray-700 font-semibold">Command Center</a>
-          </li>
-          <li className="text-gray-700 font-semibold">Add Document</li>
-        </ul>
-        <div className="flex gap-2">
-          <div className="bg-black rounded-full px-2 py-1">
-            <p className="text-white text-lg font-bold mt-0.5">LO</p>
-          </div>
-          <div>
-            <h2 className="text-gray-800 text-sm font-semibold">Lalu Oki</h2>
-            <p className="text-gray-600 text-xs tracking-wider">
-              Chief Patrol Supervisor
-            </p>
-          </div>
-        </div>
-      </div>
+      <Breadcrumb
+        items={[
+          { label: "Dashboard", path: "/" },
+          { label: "Question Builder" },
+          { label: "Add Question" },
+        ]}
+      />
 
       <div className="px-6 pb-6">
         <div className=" mt-5 grid grid-cols-2 gap-5">
@@ -622,12 +608,6 @@ const QuestionBuilder = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {/* <button className="flex items-center gap-1 cursor-pointer">
-                      <Edit size={17} color="gray" />
-                      <p className="text-xs text-gray-500 tracking-wide">
-                        Edit
-                      </p>
-                    </button> */}
                     <button
                       className="flex items-center gap-1 cursor-pointer"
                       onClick={() => handleDeactivateQuestion(item.id)}
@@ -658,19 +638,6 @@ const QuestionBuilder = () => {
             )}
           </div>
         </div>
-
-        {/* {(activeQuestions?.length ?? 0 > 0) ? (
-          <button className="bg-gray-200 rounded-lg py-3 w-full">
-            <div className="flex items-center justify-center gap-2 flex-1">
-              <AddCircle size={17} color="gray" />
-              <p className="text-gray-500 font-semibold text-sm capitalize">
-                Sisipkan pertanyaan baru pada checkpoint ini
-              </p>
-            </div>
-          </button>
-        ) : (
-          <></>
-        )} */}
       </div>
     </div>
   );

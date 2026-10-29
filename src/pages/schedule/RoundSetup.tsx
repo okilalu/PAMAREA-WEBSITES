@@ -40,8 +40,6 @@ const RoundSetup = ({ roundId, onBack }: RoundSetupProps) => {
     error,
   } = usePatrolRoundById(roundId);
 
-  console.log(roundId);
-
   const reorderMutation = useReorderPatrolRoundCheckpoints(roundId ?? "");
 
   useEffect(() => {

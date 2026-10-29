@@ -17,19 +17,19 @@ import {
   TheGraph,
   UserTag,
 } from "iconsax-react";
+import { useNavigate } from "react-router-dom";
+
+import pamareaLogo from "../../assets/img/PAMAREA.png";
 
 import Dashboard from "../../pages/Dashboard";
 import UserManage from "../../pages/UserManage";
-import pamareaLogo from "../../assets/img/PAMAREA.png";
-// import PLNLOGO from "../../assets/img/PLNNusantaraPower.png";
 import Checkpoint from "../../pages/Checkpoint";
 import QuestionBuilder from "../../pages/QuestionBuilder";
 import NfcManage from "../../pages/NfcManage";
 import RealTimeMonitor from "../../pages/RealTimeMonitor";
 import AnalyticAudit from "../../pages/AnalyticAudit";
-import { useLogout } from "../../hooks/auth";
-import { useNavigate } from "react-router-dom";
 import ManageFinding from "../../pages/ManageFinding";
+
 import ShiftChanges from "../../pages/schedule/ShiftChanges";
 import RosterCalendar from "../../pages/schedule/RosterCalendar";
 import ManageSchedule from "../../pages/schedule/ManageSchedule";
@@ -38,21 +38,94 @@ import PatrolRound from "../../pages/schedule/PatrolRound";
 import RoundSetup from "../../pages/schedule/RoundSetup";
 import Patrols from "../../pages/schedule/Patrols";
 
+import { useLogout } from "../../hooks/auth";
+
+type MenuChild = {
+  name: string;
+  icon?: React.ElementType;
+};
+
 type MenuItem = {
   name: string;
   icon: React.ElementType;
-  children?: {
-    name: string;
-    icon?: React.ElementType;
-  }[];
+  children?: MenuChild[];
 };
+
+const menus: MenuItem[] = [
+  {
+    name: "Dashboard",
+    icon: Category,
+  },
+  {
+    name: "Patrol Point Setup",
+    icon: LocationDiscover,
+  },
+  {
+    name: "User Management",
+    icon: UserTag,
+  },
+  {
+    name: "NFC Management",
+    icon: SecurityCard,
+  },
+  {
+    name: "Operational Patrol",
+    icon: SecurityTime,
+    children: [
+      {
+        name: "Schedule Management",
+        icon: SecurityTime,
+      },
+      {
+        name: "Shift Management",
+        icon: CalendarAdd,
+      },
+      {
+        name: "Round Management",
+        icon: Routing,
+      },
+      {
+        name: "Swap Shift",
+        icon: ArrowSwapHorizontal,
+      },
+      {
+        name: "Roster Calendar",
+        icon: CalendarTick,
+      },
+      {
+        name: "Patrol History",
+        icon: Story,
+      },
+    ],
+  },
+  {
+    name: "Question Builder",
+    icon: TaskSquare,
+  },
+  {
+    name: "Finding Management",
+    icon: Cardano,
+  },
+  {
+    name: "Real-Time Monitoring",
+    icon: Pointer,
+  },
+  {
+    name: "Analytic & Audit",
+    icon: TheGraph,
+  },
+];
 
 const Sidebar = () => {
   const [activeMenu, setActiveMenu] = useState("Dashboard");
+
   const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null);
-  const [openGroups, setOpenGroups] = useState<string[]>([
-    "Operational Patrol",
-  ]);
+
+  const [openGroups, setOpenGroups] = useState<string[]>([]);
+
+  const { mutate: logout, isPending } = useLogout();
+  const navigate = useNavigate();
+
   const toggleGroup = (groupName: string) => {
     setOpenGroups((prev) =>
       prev.includes(groupName)
@@ -60,81 +133,6 @@ const Sidebar = () => {
         : [...prev, groupName],
     );
   };
-  const { mutate: logout, isPending } = useLogout();
-  const navigate = useNavigate();
-
-  const menus: MenuItem[] = [
-    {
-      name: "Dashboard",
-      icon: Category,
-    },
-    {
-      name: "Patrol Point Setup",
-      icon: LocationDiscover,
-    },
-    {
-      name: "User Management",
-      icon: UserTag,
-    },
-    {
-      name: "NFC Management",
-      icon: SecurityCard,
-    },
-    {
-      name: "Operational Patrol",
-      icon: SecurityTime,
-      children: [
-        {
-          name: "Schedule Management",
-          icon: SecurityTime,
-        },
-        {
-          name: "Shift Management",
-          icon: CalendarAdd,
-        },
-        {
-          name: "Round Management",
-          icon: Routing,
-        },
-        {
-          name: "Swap Shift",
-          icon: ArrowSwapHorizontal,
-        },
-        {
-          name: "Roster Calendar",
-          icon: CalendarTick,
-        },
-        {
-          name: "Patrol History",
-          icon: Story,
-        },
-      ],
-    },
-    // {
-    //   name: "Schedule Management",
-    //   icon: SecurityTime,
-    // },
-    {
-      name: "Question Builder",
-      icon: TaskSquare,
-    },
-    {
-      name: "Finding Management",
-      icon: Cardano,
-    },
-    {
-      name: "Real-Time Monitoring",
-      icon: Pointer,
-    },
-    {
-      name: "Analytic & Audit",
-      icon: TheGraph,
-    },
-  ];
-
-  // const handleMenuClick = (menuName: string) => {
-  //   setActiveMenu(menuName);
-  // };
 
   const handleMenuClick = (menuName: string) => {
     setActiveMenu(menuName);
@@ -162,7 +160,6 @@ const Sidebar = () => {
         return <ManageSchedule />;
 
       case "Shift Management":
-        // Ganti dengan komponen halaman Buat Jadwal milikmu.
         return <PatrolSchedule />;
 
       case "Round Management":
@@ -180,15 +177,12 @@ const Sidebar = () => {
         );
 
       case "Swap Shift":
-        // Ganti dengan komponen halaman Tukar Shift milikmu.
         return <ShiftChanges />;
 
       case "Roster Calendar":
-        // Ganti dengan komponen halaman Tukar Shift milikmu.
         return <RosterCalendar />;
 
       case "Patrol History":
-        // Ganti dengan komponen halaman Tukar Shift milikmu.
         return <Patrols />;
 
       case "Question Builder":
@@ -232,14 +226,13 @@ const Sidebar = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F8FA]">
-      <aside className="fixed left-0 top-0 z-40 h-screen w-72 bg-[#0B3B60]">
-        <div className="flex h-16 items-center gap-3 bg-[#002541] px-6">
-          {/* <img
-            src={PLNLOGO}
-            alt="PLN Logo"
+      <aside className="fixed left-0 top-0 z-40 flex h-screen w-72 flex-col bg-[#0B3B60]">
+        <div className="flex h-16 shrink-0 items-center gap-3 bg-[#002541] px-6">
+          <img
+            src={pamareaLogo}
+            alt="PAMAREA Logo"
             className="h-12 w-auto object-contain"
-          /> */}
-
+          />
           <div>
             <h1 className="text-md font-bold text-white">PAMAREA</h1>
 
@@ -247,14 +240,9 @@ const Sidebar = () => {
               Command Center
             </p>
           </div>
-          <img
-            src={pamareaLogo}
-            alt="PAMAREA Logo"
-            className="h-12 w-auto object-contain"
-          />
         </div>
 
-        <nav className="px-4 py-6">
+        <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-6">
           <p className="mb-4 px-2 text-xs font-semibold uppercase tracking-wider text-[#517CA4]">
             Operational Modules
           </p>
@@ -264,14 +252,17 @@ const Sidebar = () => {
               const Icon = menu.icon;
               const hasChildren = Boolean(menu.children?.length);
               const isOpen = openGroups.includes(menu.name);
+
               const isActive = activeMenu === menu.name;
+
               const hasActiveChild = menu.children?.some(
                 (child) => child.name === activeMenu,
               );
 
+              const isHighlighted = isActive || Boolean(hasActiveChild);
+
               return (
                 <div key={menu.name}>
-                  {/* MENU UTAMA */}
                   <button
                     type="button"
                     onClick={() => {
@@ -281,18 +272,17 @@ const Sidebar = () => {
                         handleMenuClick(menu.name);
                       }
                     }}
+                    aria-expanded={hasChildren ? isOpen : undefined}
                     className={`flex w-full items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm font-medium transition ${
-                      isActive || hasActiveChild
-                        ? "bg-[#003C56] text-white border-l-4 border-[#00A3E0]"
+                      isHighlighted
+                        ? "border-l-4 border-[#00A3E0] bg-[#003C56] text-white"
                         : "text-[#5680A8] hover:bg-[#003C56] hover:text-white"
                     }`}
                   >
                     <span className="flex min-w-0 items-center gap-3">
                       <Icon
                         size={20}
-                        color={
-                          isActive || hasActiveChild ? "#009BD5" : "#5680A8"
-                        }
+                        color={isHighlighted ? "#009BD5" : "#5680A8"}
                       />
 
                       <span className="truncate">{menu.name}</span>
@@ -309,7 +299,6 @@ const Sidebar = () => {
                     )}
                   </button>
 
-                  {/* SUBMENU */}
                   {hasChildren && (
                     <div
                       className={`grid transition-[grid-template-rows] duration-200 ${
@@ -364,14 +353,15 @@ const Sidebar = () => {
           </div>
         </nav>
 
-        <div className="mt-auto border-t border-[#1C5277] p-4">
+        <div className="shrink-0 border-t border-[#1C5277] p-4">
           <button
             type="button"
             onClick={handleLogout}
             disabled={isPending}
-            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-red-300 transition-colors hover:bg-red-500/10 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+            className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-red-300 transition-colors hover:bg-red-500/10 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <LogoutCurve size={20} color="red" />
+
             <span>{isPending ? "Logging out..." : "Logout"}</span>
           </button>
         </div>

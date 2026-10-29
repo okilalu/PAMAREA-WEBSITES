@@ -4,6 +4,8 @@ import { useFindings } from "../hooks/finding/useFIndings";
 import HazardShiftChart from "../components/hazard/HazardShiftChart";
 import { formatDateTimeWITA } from "../helpers/dateTime";
 import { exportFindingExcel } from "../utils/exportFindingExcel";
+import { getPhotoUrl } from "../utils/getPhoto";
+import Breadcrumb from "../components/breadcrumbs/Breadcrumb";
 
 const ManageFinding = () => {
   const [search, setSearch] = useState({
@@ -48,26 +50,6 @@ const ManageFinding = () => {
     startIndex + itemsPerPage,
   );
 
-  const API_URL =
-    import.meta.env.VITE_API_URL || "https://api.pamarea.com/api/v1";
-
-  const API_ORIGIN = new URL(API_URL).origin;
-
-  const getPhotoUrl = (fileUrl?: string | null): string => {
-    if (!fileUrl) return "";
-
-    // Jika URL sudah absolut, gunakan langsung.
-    if (/^https?:\/\//i.test(fileUrl)) {
-      return fileUrl;
-    }
-
-    // Jika URL relatif, arahkan ke origin backend.
-    return new URL(
-      fileUrl.startsWith("/") ? fileUrl : `/${fileUrl}`,
-      API_ORIGIN,
-    ).toString();
-  };
-
   // Nomor data yang sedang ditampilkan
   const startItem = filteredData.length > 0 ? startIndex + 1 : 0;
   const endItem = Math.min(startIndex + itemsPerPage, filteredData.length);
@@ -109,28 +91,13 @@ const ManageFinding = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="px-6 flex justify-between breadcrumbs text-sm bg-white border-b border-gray-200 h-14">
-        <ul className="mt-2">
-          <li>
-            <a className="text-gray-700 font-semibold">Dashboard</a>
-          </li>
-          <li>
-            <a className="text-gray-700 font-semibold">Command Center</a>
-          </li>
-          <li className="text-gray-700 font-semibold">Add Document</li>
-        </ul>
-        <div className="flex gap-2">
-          <div className="bg-black rounded-full px-2 py-1">
-            <p className="text-white text-lg font-bold mt-0.5">LO</p>
-          </div>
-          <div>
-            <h2 className="text-gray-800 text-sm font-semibold">Lalu Oki</h2>
-            <p className="text-gray-600 text-xs tracking-wider">
-              Chief Patrol Supervisor
-            </p>
-          </div>
-        </div>
-      </div>
+      <Breadcrumb
+        items={[
+          { label: "Dashboard", path: "/" },
+          { label: "Finding Management" },
+          { label: "Export Data" },
+        ]}
+      />
 
       <div className="px-6 pb-6">
         <div className="my-5 grid grid-cols-2">
