@@ -543,21 +543,21 @@ export const formatWITA = (value: DateInput): string => {
   }).format(date);
   return `${time} WITA`;
 };
-/** * Format tanggal dan jam WITA. * * Contoh: * 25 Okt 2026, 14:30 WITA */ export const formatDateTimeWITA =
-  (value: DateInput): string => {
-    const date = toDate(value);
-    if (!date) return "-";
-    const formatted = new Intl.DateTimeFormat("id-ID", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hourCycle: "h23",
-      timeZone: "Asia/Makassar",
-    }).format(date);
-    return `${formatted} WITA`;
-  };
+/** * Format tanggal dan jam WITA. * * Contoh: * 25 Okt 2026, 14:30 WITA */
+export const formatDateTimeWITA = (value: DateInput): string => {
+  const date = toDate(value);
+  if (!date) return "-";
+  const formatted = new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: "Asia/Makassar",
+  }).format(date);
+  return `${formatted} WITA`;
+};
 /** * Format tanggal lengkap dan jam WITA. * * Contoh: * Minggu, 25 Oktober 2026 pukul 14:30 WITA */ export const formatDateTimeFullWITA =
   (value: DateInput): string => {
     const date = toDate(value);
