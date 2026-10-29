@@ -1,14 +1,10 @@
 import {
   AddCircle,
   Additem,
-  ArrowDown2,
   CloseCircle,
   Edit,
   HashtagDown,
-  Location,
-  LocationDiscover,
   Radio,
-  SecurityUser,
   Sun,
   Task,
   TaskSquare,
@@ -20,9 +16,7 @@ import { usePatrolPoints } from "../hooks/patrol-point/usePatrolPoints";
 import {
   useActiveQuestions,
   useCreateQuestion,
-  // useCreateQuestionOption,
   useDeactivateQuestion,
-  // useQuestions,
 } from "../hooks/question/useQuestions";
 import type {
   CreateQuestionOptionPayload,
@@ -187,25 +181,11 @@ const QuestionBuilder = () => {
       isSafe: false,
     },
   ]);
-
-  const [selectedCheckpoint, setSelectedCheckpoint] = useState("");
-  const [selectedShift, setSelectedShift] = useState("");
-  // const [selectedStatus, setSelectedStatus] = useState("");
   const checkpointList = useMemo(() => {
     return [...new Set(checkpoint?.map((q) => q.name))];
   }, [checkpoint]);
 
-  // const statusQuestionList = useMemo(() => {
-  //   return [...new Set(questions?.map((q) => q.status))];
-  // }, [questions]);
-
   console.log(checkpointList);
-
-  // const filterQuestionStatus = useMemo(() => {
-  //   return activeQuestions?.filter((q) => {
-  //     return selectedStatus === q.status;
-  //   });
-  // }, [selectedStatus, activeQuestions]);
 
   const handelOpenModal = () => {
     const modal = document.getElementById(
@@ -219,51 +199,6 @@ const QuestionBuilder = () => {
     ) as HTMLDialogElement;
     modal.close();
   };
-
-  // const resetForm = () => {
-  //   setCode("");
-  //   setQuestionText("");
-  //   setQuestionType("YES_NO");
-  //   setIsRequired(true);
-  //   setPhotoRequirement("NONE");
-  //   // setNoteRequirement("NONE");
-  //   setFormError("");
-  // };
-
-  // const handleQuestionBuilder = async () => {
-  //   const normalizedCode = code.trim();
-  //   const normalizedQuestion = questionText.trim();
-
-  //   if (!normalizedCode || !normalizedQuestion) {
-  //     setFormError("Kode dan teks pertanyaan wajib diisi.");
-  //     return;
-  //   }
-
-  //   const payload = {
-  //     code: normalizedCode,
-  //     questionText: normalizedQuestion,
-  //     questionType,
-  //     isRequired,
-  //     photoRequirement,
-  //   };
-
-  //   setFormError("");
-
-  //   try {
-  //     await questionBuilder(payload);
-
-  //     console.log("PAYLOAD", JSON.stringify(payload, null, 2));
-  //     setCode("");
-  //     setQuestionText("");
-  //     setQuestionType("YES_NO");
-  //     setIsRequired(true);
-  //     setPhotoRequirement("NONE");
-  //     handleCloseModal();
-  //   } catch (error) {
-  //     console.log(error);
-  //     setFormError("Pertanyaan gagal disimpan. Silakan coba kembali.");
-  //   }
-  // };
 
   const handleQuestionBuilder = async () => {
     const normalizedQuestion = questionText.trim();
@@ -475,25 +410,6 @@ const QuestionBuilder = () => {
                     Tambah Pertanyaan Inspeksi Checkpoint
                   </h3>
                 </div>
-                {/* <div className="px-2 rounded-lg bg-white">
-                  <select
-                    id="checkpoint"
-                    value={selectedCheckpointQuestion}
-                    onChange={(e) =>
-                      setselectedCheckpointQuestion(e.target.value)
-                    }
-                    className="select select-bordered w-full bg-white text-sm"
-                  >
-                    <option value="" disabled>
-                      Pilih checkpoint
-                    </option>
-                    {checkpointList.map((item, index) => (
-                      <option key={index} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </div> */}
               </div>
               <button
                 className="p-2 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors focus:outline-none"
@@ -505,21 +421,6 @@ const QuestionBuilder = () => {
 
             {/* --- BODY --- */}
             <div className="mt-6 space-y-6">
-              {/* <div>
-                <label
-                  htmlFor="code_text"
-                  className="block text-sm font-semibold text-gray-800 mb-1.5"
-                >
-                  Question Code
-                </label>
-                <input
-                  type="text"
-                  placeholder="Q-MSJ001"
-                  className="input input-bordered w-full mt-1 bg-white border-gray-100 teext-sm"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                />
-              </div> */}
               {/* 1. Pertanyaan Inspeksi */}
               <div>
                 <label
@@ -811,177 +712,6 @@ const QuestionBuilder = () => {
           </div>
         </dialog>
         {/* Add Question Modal */}
-
-        <div className="mt-5 grid grid-cols-2 gap-4">
-          <div className="bg-gray-100 rounded-lg flex items-center justify-between px-3 py-2">
-            <div className="flex items-center ">
-              <Location size={17} color="gray" />
-              <div className="ml-2">
-                <p className="text-gray-500 text-xs">
-                  Titik Checkpoint Terpilih :
-                </p>
-                <p className="font-semibold text-gray-500 text-xs">
-                  {selectedCheckpoint || "Tidak ada checkpoint terpilih"}
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-[#D5E3FF] rounded-lg px-3 py-1 ml-4">
-              <p className="font-semibold text-xs text-[#001B3B]">
-                {activeQuestions?.length} Pertanyaan Aktif
-              </p>
-            </div>
-          </div>
-
-          <div className="flex bg-gray-100 rounded-lg px-3 py-2 gap-4">
-            <div className="dropdown dropdown-start w-[50%]">
-              <div
-                tabIndex={0}
-                role="button"
-                className="bg-gray-200 rounded-sm px-3 py-2 cursor-pointer"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <LocationDiscover
-                      size={17}
-                      color="gray"
-                      className="shrink-0"
-                    />
-
-                    <div className="min-w-0">
-                      <p className="text-xs text-gray-500 text-start">
-                        Checkpoint:
-                      </p>
-
-                      <p className="text-xs text-gray-600 font-semibold truncate">
-                        {selectedCheckpoint || "Pilih Checkpoint"}
-                      </p>
-                    </div>
-                  </div>
-                  <ArrowDown2 size={17} color="gray" className="shrink-0" />
-                </div>
-              </div>
-
-              <ul
-                tabIndex={-1}
-                className="dropdown-content menu bg-gray-100 rounded-lg z-10 w-64 p-2 mt-1 shadow-md border border-gray-200"
-              >
-                {checkpointList.map((checkpoint) => (
-                  <li key={checkpoint}>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedCheckpoint(checkpoint)}
-                      className="text-xs text-gray-600 hover:bg-gray-200 rounded-md"
-                    >
-                      {checkpoint}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="dropdown dropdown-start flex-1">
-              <div
-                tabIndex={0}
-                role="button"
-                className="bg-gray-200 rounded-sm px-3 py-2 cursor-pointer"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <SecurityUser size={17} color="gray" className="shrink-0" />
-
-                    <div className="min-w-0">
-                      <p className="text-xs text-gray-500">Pilih Shift:</p>
-
-                      <p className="text-xs text-gray-600 font-semibold">
-                        {selectedShift || "Pilih Shift"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <ArrowDown2 size={17} color="gray" className="shrink-0" />
-                </div>
-              </div>
-
-              <ul
-                tabIndex={-1}
-                className="dropdown-content menu bg-white rounded-lg z-10 w-48 p-2 mt-1 shadow-md border border-gray-200"
-              >
-                {["Shift 1 (Pagi)", "Shift 2 (Siang)", "Shift 3 (Malam)"].map(
-                  (shift) => (
-                    <li key={shift}>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedShift(shift)}
-                        className="text-xs text-gray-600 hover:bg-gray-100 rounded-md"
-                      >
-                        {shift}
-                      </button>
-                    </li>
-                  ),
-                )}
-              </ul>
-            </div>
-
-            {/* <div className="dropdown dropdown-start flex-1">
-              <div
-                tabIndex={0}
-                role="button"
-                className="bg-gray-200 rounded-sm px-3 py-2 cursor-pointer"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <SecurityUser size={17} color="gray" className="shrink-0" />
-
-                    <div className="min-w-0">
-                      <p className="text-xs text-gray-500">Pilih Status:</p>
-
-                      <p className="text-xs text-gray-600 font-semibold">
-                        {selectedStatus || "Pilih Status"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <ArrowDown2 size={17} color="gray" className="shrink-0" />
-                </div>
-              </div>
-
-              <ul
-                tabIndex={-1}
-                className="dropdown-content menu bg-white rounded-lg z-10 w-48 p-2 mt-1 shadow-md border border-gray-200"
-              >
-                {statusQuestionList.map((status) => (
-                  <li key={status}>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedStatus(status)}
-                      className="text-xs text-gray-600 hover:bg-gray-100 rounded-md"
-                    >
-                      {status}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div> */}
-
-            {/* <button className="bg-gray-200 rounded-sm w-[50%] px-2 py-1 cursor-pointer">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <SecurityUser size={17} color="gray" />
-                  <div>
-                    <p className="text-xs text-gray-500 text-start">
-                      Pilih Shift:
-                    </p>
-                    <p className="text-xs text-gray-500 font-semibold">
-                      Shift 2 (Siang)
-                    </p>
-                  </div>
-                </div>
-                <ArrowDown2 size={17} color="gray" />
-              </div>
-            </button> */}
-          </div>
-        </div>
 
         <div className="mt-5">
           <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2">

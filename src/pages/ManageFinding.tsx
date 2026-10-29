@@ -3,6 +3,7 @@ import React, { useMemo, useState } from "react";
 import { useFindings } from "../hooks/finding/useFIndings";
 import HazardShiftChart from "../components/hazard/HazardShiftChart";
 import { formatDateTimeWITA } from "../helpers/dateTime";
+import { exportFindingExcel } from "../utils/exportFindingExcel";
 
 const ManageFinding = () => {
   const [search, setSearch] = useState({
@@ -17,6 +18,8 @@ const ManageFinding = () => {
 
   const itemsPerPage = 5;
   const dataFinding = findings?.data ?? [];
+
+  console.log("FINDING", JSON.stringify(dataFinding, null, 2));
 
   const filteredData = useMemo(() => {
     const titleSearch = search.title.trim().toLowerCase();
@@ -47,6 +50,26 @@ const ManageFinding = () => {
     startIndex + itemsPerPage,
   );
 
+  const API_URL =
+    import.meta.env.VITE_API_URL || "https://api.pamarea.com/api/v1";
+
+  const API_ORIGIN = new URL(API_URL).origin;
+
+  const getPhotoUrl = (fileUrl?: string | null): string => {
+    if (!fileUrl) return "";
+
+    // Jika URL sudah absolut, gunakan langsung.
+    if (/^https?:\/\//i.test(fileUrl)) {
+      return fileUrl;
+    }
+
+    // Jika URL relatif, arahkan ke origin backend.
+    return new URL(
+      fileUrl.startsWith("/") ? fileUrl : `/${fileUrl}`,
+      API_ORIGIN,
+    ).toString();
+  };
+
   // Nomor data yang sedang ditampilkan
   const startItem = filteredData.length > 0 ? startIndex + 1 : 0;
   const endItem = Math.min(startIndex + itemsPerPage, filteredData.length);
@@ -73,7 +96,18 @@ const ManageFinding = () => {
       .sort((a, b) => b.total - a.total);
   }, [dataFinding]);
 
-  console.log("FINDING", JSON.stringify(dataFinding, null, 2));
+  const handleExportExcel = async () => {
+    try {
+      if (filteredData.length === 0) {
+        console.warn("Tidak ada data temuan untuk diekspor.");
+        return;
+      }
+
+      await exportFindingExcel(filteredData);
+    } catch (error) {
+      console.error("Gagal export laporan temuan:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -114,7 +148,11 @@ const ManageFinding = () => {
             </p>
           </div>
           <div className="flex items-center justify-end ">
-            <button className="flex items-center bg-white border border-gray-200 rounded-lg px-4 py-2 hover:bg-gray-200 cursor-pointer">
+            <button
+              onClick={handleExportExcel}
+              disabled={filteredData.length === 0}
+              className="flex items-center bg-white border border-gray-200 rounded-lg px-4 py-2 hover:bg-gray-200 cursor-pointer"
+            >
               <ExportCurve size={20} color="black" />
               <p className="ml-2 font-semibold text-sm">Export Laporan</p>
             </button>
@@ -288,12 +326,14 @@ const ManageFinding = () => {
                               <button
                                 key={photoIndex}
                                 type="button"
-                                onClick={() => setSelectedPhoto(photo.fileUrl)}
+                                onClick={() =>
+                                  setSelectedPhoto(getPhotoUrl(photo.fileUrl))
+                                }
                                 aria-label={`Lihat foto ${photoIndex + 1} dari ${item.title}`}
                                 className="group relative h-12 w-16 shrink-0 overflow-hidden rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#003B73] focus:ring-offset-2"
                               >
                                 <img
-                                  src={photo.fileUrl}
+                                  src={getPhotoUrl(photo.fileUrl)}
                                   alt={`Foto ${item.title} ${photoIndex + 1}`}
                                   loading="lazy"
                                   className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"

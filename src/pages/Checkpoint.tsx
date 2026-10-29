@@ -213,6 +213,8 @@ const Checkpoint = () => {
     );
   }
 
+  console.log("POINT", JSON.stringify(listCheckpoints, null, 2));
+
   return (
     <div className="min-h-screen">
       <div className="px-6 flex justify-between breadcrumbs text-sm bg-white border-b border-gray-200 h-14">

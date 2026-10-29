@@ -1,9 +1,9 @@
 import {
-  ArrowRight2,
+  // ArrowRight2,
   Calendar,
   DocumentDownload,
   Location,
-  Notification,
+  // Notification,
   Sun,
   UserOctagon,
   Warning2,
@@ -31,101 +31,101 @@ const Dashboard = () => {
     });
   }, []);
 
-  const cardHazard = [
-    {
-      alert: "Critical",
-      time: "14.12 WIB",
-      title: "Kawat Duri Pagar Pembatas Sektor Barat Terputus",
-      guard: "Dimas",
-      location: "Pagar Luar Barat (Zona 1)",
-      note: "Potensi akses masuk liar di dekat tiang transmisi no. 4. Telah dipasang pita pengaman sementara.",
-    },
-    {
-      alert: "High",
-      time: "13.47 WIB",
-      title: "Lampu Penerangan Area Parkir Tidak Berfungsi",
-      guard: "Rizky",
-      location: "Area Parkir Kendaraan",
-      note: "Area parkir sisi timur dalam kondisi minim penerangan. Perlu dilakukan pemeriksaan dan penggantian lampu.",
-    },
-    {
-      alert: "Medium",
-      time: "12.35 WIB",
-      title: "Genangan Air Ditemukan di Jalur Akses Panel",
-      guard: "Andi",
-      location: "Ruang Panel Utama",
-      note: "Terdapat genangan air di sekitar jalur akses panel. Area telah diberi tanda peringatan untuk mencegah risiko terpeleset.",
-    },
-    {
-      alert: "High",
-      time: "11.58 WIB",
-      title: "Pintu Gudang Material Tidak Terkunci Sempurna",
-      guard: "Fajar",
-      location: "Gudang Material Utama",
-      note: "Pintu gudang ditemukan tidak tertutup rapat. Telah dilakukan penguncian sementara dan dilaporkan kepada petugas terkait.",
-    },
-    {
-      alert: "Low",
-      time: "10.26 WIB",
-      title: "Tumpukan Material Menghalangi Sebagian Jalur Inspeksi",
-      guard: "Bima",
-      location: "Area Trafo Daya 1",
-      note: "Beberapa material berada terlalu dekat dengan jalur inspeksi. Diperlukan penataan ulang agar akses petugas tetap aman.",
-    },
-    {
-      alert: "Critical",
-      time: "09.41 WIB",
-      title: "Pagar Pembatas Area Trafo Mengalami Kerusakan",
-      guard: "Hendra",
-      location: "Area Trafo Daya 2",
-      note: "Ditemukan bagian pagar pembatas yang bengkok dan berpotensi mengurangi keamanan area. Perlu segera dilakukan perbaikan.",
-    },
-  ];
+  // const cardHazard = [
+  //   {
+  //     alert: "Critical",
+  //     time: "14.12 WIB",
+  //     title: "Kawat Duri Pagar Pembatas Sektor Barat Terputus",
+  //     guard: "Dimas",
+  //     location: "Pagar Luar Barat (Zona 1)",
+  //     note: "Potensi akses masuk liar di dekat tiang transmisi no. 4. Telah dipasang pita pengaman sementara.",
+  //   },
+  //   {
+  //     alert: "High",
+  //     time: "13.47 WIB",
+  //     title: "Lampu Penerangan Area Parkir Tidak Berfungsi",
+  //     guard: "Rizky",
+  //     location: "Area Parkir Kendaraan",
+  //     note: "Area parkir sisi timur dalam kondisi minim penerangan. Perlu dilakukan pemeriksaan dan penggantian lampu.",
+  //   },
+  //   {
+  //     alert: "Medium",
+  //     time: "12.35 WIB",
+  //     title: "Genangan Air Ditemukan di Jalur Akses Panel",
+  //     guard: "Andi",
+  //     location: "Ruang Panel Utama",
+  //     note: "Terdapat genangan air di sekitar jalur akses panel. Area telah diberi tanda peringatan untuk mencegah risiko terpeleset.",
+  //   },
+  //   {
+  //     alert: "High",
+  //     time: "11.58 WIB",
+  //     title: "Pintu Gudang Material Tidak Terkunci Sempurna",
+  //     guard: "Fajar",
+  //     location: "Gudang Material Utama",
+  //     note: "Pintu gudang ditemukan tidak tertutup rapat. Telah dilakukan penguncian sementara dan dilaporkan kepada petugas terkait.",
+  //   },
+  //   {
+  //     alert: "Low",
+  //     time: "10.26 WIB",
+  //     title: "Tumpukan Material Menghalangi Sebagian Jalur Inspeksi",
+  //     guard: "Bima",
+  //     location: "Area Trafo Daya 1",
+  //     note: "Beberapa material berada terlalu dekat dengan jalur inspeksi. Diperlukan penataan ulang agar akses petugas tetap aman.",
+  //   },
+  //   {
+  //     alert: "Critical",
+  //     time: "09.41 WIB",
+  //     title: "Pagar Pembatas Area Trafo Mengalami Kerusakan",
+  //     guard: "Hendra",
+  //     location: "Area Trafo Daya 2",
+  //     note: "Ditemukan bagian pagar pembatas yang bengkok dan berpotensi mengurangi keamanan area. Perlu segera dilakukan perbaikan.",
+  //   },
+  // ];
 
-  const checkpointData = [
-    {
-      guard: "Dimas Pratama",
-      checkpoint: "Checkpoint A - Main Gate",
-      nfcStatus: "Verified",
-      gpsStatus: "On Site",
-      timestamp: "28 Sep 2026, 20:45",
-    },
-    {
-      guard: "Rizky Maulana",
-      checkpoint: "Checkpoint B - Parking Area",
-      nfcStatus: "Verified",
-      gpsStatus: "Off Site",
-      timestamp: "28 Sep 2026, 20:32",
-    },
-    {
-      guard: "Andi Saputra",
-      checkpoint: "Checkpoint C - Warehouse",
-      nfcStatus: "Pending",
-      gpsStatus: "On Site",
-      timestamp: "28 Sep 2026, 20:18",
-    },
-    {
-      guard: "Fajar Hidayat",
-      checkpoint: "Checkpoint D - Back Gate",
-      nfcStatus: "Verified",
-      gpsStatus: "On Site",
-      timestamp: "28 Sep 2026, 19:57",
-    },
-    {
-      guard: "Bima Setiawan",
-      checkpoint: "Checkpoint E - Lobby",
-      nfcStatus: "Failed",
-      gpsStatus: "On Site",
-      timestamp: "28 Sep 2026, 19:41",
-    },
-    {
-      guard: "Hendra Wijaya",
-      checkpoint: "Checkpoint F - Transformer Area",
-      nfcStatus: "Verified",
-      gpsStatus: "Off Site",
-      timestamp: "28 Sep 2026, 19:26",
-    },
-  ];
+  // const checkpointData = [
+  //   {
+  //     guard: "Dimas Pratama",
+  //     checkpoint: "Checkpoint A - Main Gate",
+  //     nfcStatus: "Verified",
+  //     gpsStatus: "On Site",
+  //     timestamp: "28 Sep 2026, 20:45",
+  //   },
+  //   {
+  //     guard: "Rizky Maulana",
+  //     checkpoint: "Checkpoint B - Parking Area",
+  //     nfcStatus: "Verified",
+  //     gpsStatus: "Off Site",
+  //     timestamp: "28 Sep 2026, 20:32",
+  //   },
+  //   {
+  //     guard: "Andi Saputra",
+  //     checkpoint: "Checkpoint C - Warehouse",
+  //     nfcStatus: "Pending",
+  //     gpsStatus: "On Site",
+  //     timestamp: "28 Sep 2026, 20:18",
+  //   },
+  //   {
+  //     guard: "Fajar Hidayat",
+  //     checkpoint: "Checkpoint D - Back Gate",
+  //     nfcStatus: "Verified",
+  //     gpsStatus: "On Site",
+  //     timestamp: "28 Sep 2026, 19:57",
+  //   },
+  //   {
+  //     guard: "Bima Setiawan",
+  //     checkpoint: "Checkpoint E - Lobby",
+  //     nfcStatus: "Failed",
+  //     gpsStatus: "On Site",
+  //     timestamp: "28 Sep 2026, 19:41",
+  //   },
+  //   {
+  //     guard: "Hendra Wijaya",
+  //     checkpoint: "Checkpoint F - Transformer Area",
+  //     nfcStatus: "Verified",
+  //     gpsStatus: "Off Site",
+  //     timestamp: "28 Sep 2026, 19:26",
+  //   },
+  // ];
 
   const summaryCardData = [
     {
@@ -151,7 +151,7 @@ const Dashboard = () => {
     },
   ];
 
-  const sliceData = cardHazard.slice(0, 3);
+  // const sliceData = cardHazard.slice(0, 3);
   return (
     <div className="min-h-screen ">
       <div className="px-6 flex justify-between breadcrumbs text-sm bg-white border-b border-gray-200 h-14">
@@ -364,7 +364,7 @@ const Dashboard = () => {
         {/* Maps */}
 
         {/* Table */}
-        <div className="flex gap-5">
+        {/* <div className="flex gap-5">
           <div className="mt-5 bg-white p-4 shadow-sm rounded-lg w-[60%]">
             <div className="bg-gray-200 rounded-lg px-4 py-2 flex items-center justify-between">
               <div className="">
@@ -486,7 +486,6 @@ const Dashboard = () => {
               </button>
             </div>
 
-            {/* Card hazard */}
             {sliceData.map((item) => (
               <div className="bg-gray-100 rounded-lg p-3 my-5">
                 <div className="flex items-center justify-between">
@@ -524,20 +523,11 @@ const Dashboard = () => {
                     </p>
                   </div>
 
-                  {/* <div className="mt-3 flex w-full justify-end">
-                    <button className="flex items-center justify-center gap-1 rounded-lg bg-[#FED400] px-3 py-1">
-                      <span className="text-xs font-semibold text-gray-800">
-                        Action / Assign
-                      </span>
-                      <ArrowRight size={13} color="gray" className="mt-0.5" />
-                    </button>
-                  </div> */}
                 </div>
               </div>
             ))}
-            {/* Card hazard */}
           </div>
-        </div>
+        </div> */}
         {/* Table */}
       </div>
     </div>

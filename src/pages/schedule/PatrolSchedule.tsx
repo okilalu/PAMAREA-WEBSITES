@@ -12,24 +12,27 @@ import {
   CalendarAdd,
   CloseCircle,
   Edit2,
-  LocationDiscover,
+  LocationAdd,
   TickCircle,
   Trash,
 } from "iconsax-react";
 import type {
+  AddSchedulePointPayload,
   CreatePatrolSchedulePayload,
   CreateSchedulePointInput,
   PatrolScheduleListItem,
 } from "../../types";
 import { useAuthContext } from "../../hooks/auth/useAuthContext";
 import { usePatrolPoints } from "../../hooks/patrol-point/usePatrolPoints";
+import { formatDuration } from "../../helpers/dateTime";
+import { useAddNewPoint } from "../../hooks/schedule/usePatrolSchedulePoint";
 
 const PatrolSchedule = () => {
   const { user } = useAuthContext();
   const siteId = user?.siteId;
 
-  const { data: patrolPoint } = usePatrolPoints();
-  const { data: patrolSchedule } = usePatrolSchedules();
+  const { data: patrolPoint, isError: isPatrolPointsError } = usePatrolPoints();
+  const { data: patrolSchedules } = usePatrolSchedules();
 
   const { mutateAsync: createPS } = useCreatePatrolSchedule();
   const { mutate: activateSchedule, isPending: isActivating } =
@@ -37,6 +40,8 @@ const PatrolSchedule = () => {
   const { mutateAsync: deleteShift } = useDeletePatrolSchedule();
   const { mutateAsync: updateShift, isPending: isUpdating } =
     useUpdatePatrolSchedule();
+
+  const { mutateAsync: addPoint, isPending: isCreating } = useAddNewPoint();
 
   const [name, setName] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -55,6 +60,10 @@ const PatrolSchedule = () => {
     useState<number>(30);
   const [updateEnforceSequence, setUpdateEnforceSequence] = useState(false);
 
+  const [patrolPointId, setPatrolPointId] = useState("");
+  const [insertAtSequence, setInsertAtSequence] = useState<number>(1);
+  const [required, setRequired] = useState<boolean>(true);
+
   const [selectedStatus, setSelectedStatus] = useState<"ACTIVE" | "DRAFT">(
     "ACTIVE",
   );
@@ -66,13 +75,46 @@ const PatrolSchedule = () => {
   >(null);
 
   const filteredSchedules = useMemo(() => {
-    return patrolSchedule?.data.filter(
+    return patrolSchedules?.data.filter(
       (schedule) => schedule.status === selectedStatus,
     );
-  }, [patrolSchedule, selectedStatus]);
+  }, [patrolSchedules, selectedStatus]);
 
-  const activePatrolPoints =
-    patrolPoint?.filter((point) => point.status === "ACTIVE") ?? [];
+  const activePatrolPoints = useMemo(() => {
+    return patrolPoint?.filter((point) => point.status === "ACTIVE") ?? [];
+  }, [patrolPoint]);
+
+  const registeredPatrolPoints = useMemo(() => {
+    if (!selectedSchedule) return [];
+
+    return activePatrolPoints
+      .flatMap((point) =>
+        (point.schedulePoints ?? [])
+          .filter(
+            (schedulePoint) => schedulePoint.scheduleId === selectedSchedule.id,
+          )
+          .map((schedulePoint) => ({
+            id: schedulePoint.id,
+            patrolPointId: point.id,
+            code: point.code,
+            name: point.name,
+            sequence: schedulePoint.sequence,
+            required: schedulePoint.required,
+          })),
+      )
+      .sort((a, b) => a.sequence - b.sequence);
+  }, [activePatrolPoints, selectedSchedule]);
+
+  console.log("SelectedSchedule", JSON.stringify(selectedSchedule, null, 2));
+  console.log("REGITERDATA", JSON.stringify(registeredPatrolPoints, null, 2));
+
+  const availablePatrolPoints = useMemo(() => {
+    const registeredIds = new Set(
+      registeredPatrolPoints.map((point) => point.patrolPointId),
+    );
+
+    return activePatrolPoints.filter((point) => !registeredIds.has(point.id));
+  }, [activePatrolPoints, registeredPatrolPoints]);
 
   const openModal = (id: string) => {
     const modal = document.getElementById(id) as HTMLDialogElement | null;
@@ -95,6 +137,15 @@ const PatrolSchedule = () => {
     openModal("activate_shift");
   };
 
+  const handleAddPointModal = (schedule: PatrolScheduleListItem) => {
+    setSelectedSchedule(schedule);
+
+    setPatrolPointId("");
+    setInsertAtSequence(1);
+    setRequired(true);
+    openModal("add_point");
+  };
+
   const handleUpdateModal = (schedule: PatrolScheduleListItem) => {
     setSelectedSchedule(schedule);
 
@@ -114,6 +165,7 @@ const PatrolSchedule = () => {
   //     closeModal("activate_shift");
   //     setSelectedSchedule(null);
   //   };
+
   const handleSelectOne = (patrolPointId: string) => {
     setPoints((prev) => {
       const isSelected = prev.some(
@@ -289,6 +341,60 @@ const PatrolSchedule = () => {
     }
   };
 
+  const handleAddPoint = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!selectedSchedule) {
+      console.log("Schedule tidak ada");
+      return;
+    }
+
+    if (!patrolPointId) {
+      console.error("Patrol Point harus dipilih");
+      return;
+    }
+
+    if (!Number.isInteger(insertAtSequence) || insertAtSequence < 1) {
+      console.error(
+        "Urutan Patrol Point harus berupa bilangan bulat minimal 1.",
+      );
+      return;
+    }
+
+    if (isCreating) {
+      return;
+    }
+
+    const payload: AddSchedulePointPayload = {
+      patrolPointId,
+      insertAtSequence,
+      required,
+    };
+    console.log(
+      "ADD PATROL POINT PAYLOAD:",
+      JSON.stringify(
+        {
+          scheduleId: selectedSchedule.id,
+          ...payload,
+        },
+        null,
+        2,
+      ),
+    );
+
+    try {
+      await addPoint({ scheduleId: selectedSchedule.id, payload });
+      console.log("Berhasil tambah patrol point");
+
+      setPatrolPointId("");
+      setInsertAtSequence(1);
+      setRequired(true);
+
+      closeModal("add_point");
+    } catch (error) {
+      console.log("Error saat menambahkan patrol point", error);
+    }
+  };
+
   const handleActivateSchedule = async () => {
     if (!selectedSchedule || isActivating) return;
 
@@ -394,13 +500,13 @@ const PatrolSchedule = () => {
 
           {/* Table */}
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[850px] table-fixed text-left">
-              <thead>
+            <table className="w-full min-w-[850px] table-fixed text-center">
+              <thead className="">
                 <tr className="border-b border-gray-200 bg-white">
-                  <th className="w-[27%] px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                  <th className="w-[17%] px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-500">
                     Nama Jadwal
                   </th>
-                  <th className="w-[19%] px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                  <th className="w-[17%] px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-500">
                     Jam Operasional
                   </th>
                   <th className="w-[16%] px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-500">
@@ -412,7 +518,7 @@ const PatrolSchedule = () => {
                   <th className="w-[13%] px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-500">
                     Status
                   </th>
-                  <th className="w-[10%] px-3 py-3 text-right text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                  <th className="w-[15%] px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-gray-500">
                     Aksi
                   </th>
                 </tr>
@@ -429,7 +535,7 @@ const PatrolSchedule = () => {
                         className="group transition-colors hover:bg-blue-50/30"
                       >
                         {/* Nama Jadwal */}
-                        <td className="px-4 py-3">
+                        <td className="px-6 py-3">
                           <div className="flex min-w-0 items-center gap-2.5">
                             <div
                               className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
@@ -454,31 +560,24 @@ const PatrolSchedule = () => {
 
                         {/* Jam Operasional */}
                         <td className="px-3 py-3">
-                          <div className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                            <span>{schedule.startTime}</span>
+                          <div className="flex items-center justify-center gap-1.5 text-xs font-medium text-gray-700">
+                            <p className="">{schedule.startTime}</p>
                             <span className="text-gray-400">–</span>
-                            <span>{schedule.endTime}</span>
+                            <p className="">{schedule.endTime}</p>
                           </div>
                           <p className="mt-1 text-[10px] text-gray-400">WITA</p>
                         </td>
 
                         {/* Interval */}
                         <td className="px-3 py-3">
-                          <span className="text-sm font-semibold text-gray-700">
-                            {schedule.intervalMinutes}
-                          </span>
-                          <span className="ml-1 text-xs text-gray-500">
-                            menit
-                          </span>
+                          <p className="text-sm font-semibold text-gray-700 text-center">
+                            {formatDuration(schedule.intervalMinutes)}
+                          </p>
                         </td>
 
                         {/* Titik Patroli */}
                         <td className="px-3 py-3">
-                          <div className="flex items-center gap-2.5">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#003B73]">
-                              <LocationDiscover size={19} color="gray" />
-                            </div>
-
+                          <div className="flex items-center justify-center gap-2.5">
                             <div>
                               <p className="text-sm font-bold text-gray-800">
                                 {schedule._count?.points ?? 0}
@@ -510,7 +609,7 @@ const PatrolSchedule = () => {
                         </td>
 
                         {/* Aksi */}
-                        <td className="px-3 py-3">
+                        <td className="px-6 py-3">
                           <div className="flex items-center justify-end gap-2">
                             {isDraft ? (
                               <>
@@ -546,6 +645,16 @@ const PatrolSchedule = () => {
                               </>
                             ) : (
                               <>
+                                {/* Add Point */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleAddPointModal(schedule)}
+                                  title="Add new"
+                                  aria-label={`Add new ${schedule.name}`}
+                                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-[#003B73] transition-colors hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-300 cursor-pointer"
+                                >
+                                  <LocationAdd size={17} color="#003B73" />
+                                </button>
                                 {/* Edit Shift */}
                                 <button
                                   type="button"
@@ -1282,6 +1391,243 @@ const PatrolSchedule = () => {
           </form>
         </dialog>
         {/* Modal Aktivasi */}
+
+        {/* Modal Add Point */}
+        <dialog id="add_point" className="modal">
+          <div className="modal-box flex max-h-[92vh] w-11/12 max-w-3xl flex-col overflow-hidden rounded-2xl bg-white p-0 shadow-2xl">
+            <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">
+                  Kelola Patrol Point
+                </h2>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  Periksa checkpoint yang terdaftar dan tambahkan checkpoint
+                  baru.
+                </p>
+
+                {selectedSchedule && (
+                  <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2">
+                    <span className="text-xs font-medium text-slate-500">
+                      Jadwal:
+                    </span>
+
+                    <span className="text-sm font-semibold text-[#003B73]">
+                      {selectedSchedule.name}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => closeModal("add_point")}
+                className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                aria-label="Tutup modal"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* CONTENT */}
+            <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-6">
+              {/* Titik Patrol Terdaftar */}
+              <div className="mb-6">
+                <div className="mb-3 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-800">
+                      Titik Patrol Terdaftar
+                    </h3>
+
+                    <p className="mt-1 text-xs text-slate-500">
+                      Daftar titik patrol yang sudah terhubung dengan jadwal
+                      ini.
+                    </p>
+                  </div>
+
+                  <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                    {registeredPatrolPoints.length} Titik
+                  </span>
+                </div>
+
+                {registeredPatrolPoints.length > 0 ? (
+                  <div className="overflow-hidden rounded-xl border border-slate-200">
+                    <div className="max-h-56 overflow-y-auto">
+                      {registeredPatrolPoints.map((point, index) => (
+                        <div
+                          key={point.id}
+                          className="flex items-center gap-3 border-b border-slate-100 p-3 last:border-b-0"
+                        >
+                          {/* Nomor Urutan */}
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-sm font-semibold text-slate-700">
+                            {point.sequence ?? index + 1}
+                          </div>
+
+                          {/* Informasi Titik */}
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-slate-800">
+                              {point.name}
+                            </p>
+
+                            <p className="mt-1 text-xs text-slate-500">
+                              {point.code}
+                            </p>
+                          </div>
+
+                          {/* Status Required */}
+                          <span
+                            className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
+                              point.required
+                                ? "bg-amber-50 text-amber-700"
+                                : "bg-slate-100 text-slate-600"
+                            }`}
+                          >
+                            {point.required ? "Wajib" : "Opsional"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center">
+                    <p className="text-sm font-medium text-slate-600">
+                      Belum ada titik patrol
+                    </p>
+
+                    <p className="mt-1 text-xs text-slate-500">
+                      Pilih titik patrol di bawah untuk menambahkannya ke jadwal
+                      ini.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* FORM TAMBAH PATROL POINT */}
+              <form
+                id="add-point-form"
+                onSubmit={handleAddPoint}
+                className="space-y-5 border-t border-slate-200 pt-6"
+              >
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">
+                    Tambahkan Patrol Point
+                  </h3>
+
+                  <p className="mt-1 text-sm text-slate-500">
+                    Pilih checkpoint yang akan dimasukkan ke jadwal ini.
+                  </p>
+                </div>
+
+                {/* SELECT PATROL POINT */}
+                <div>
+                  <label
+                    htmlFor="patrolPointId"
+                    className="mb-2 block text-sm font-medium text-slate-700"
+                  >
+                    Pilih Titik Patrol
+                  </label>
+
+                  <select
+                    id="patrolPointId"
+                    value={patrolPointId}
+                    onChange={(e) => setPatrolPointId(e.target.value)}
+                    className="select select-bordered w-full"
+                  >
+                    <option value="">Pilih titik patrol</option>
+
+                    {availablePatrolPoints.map((point) => (
+                      <option key={point.id} value={point.id}>
+                        {point.code} — {point.name}
+                      </option>
+                    ))}
+                  </select>
+                  {availablePatrolPoints.length === 0 && (
+                    <p className="mt-2 text-xs text-emerald-600">
+                      Semua titik patrol sudah terdaftar pada jadwal ini.
+                    </p>
+                  )}
+
+                  {isPatrolPointsError && (
+                    <p className="mt-2 text-xs text-red-500">
+                      Tidak dapat mengambil daftar Patrol Point. Silakan coba
+                      lagi.
+                    </p>
+                  )}
+                </div>
+
+                {/* URUTAN DAN STATUS WAJIB */}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="mt-4">
+                    <label
+                      htmlFor="insertAtSequence"
+                      className="mb-2 block text-sm font-medium text-slate-700"
+                    >
+                      Posisi Urutan
+                    </label>
+
+                    <input
+                      id="insertAtSequence"
+                      type="number"
+                      min={1}
+                      max={registeredPatrolPoints.length + 1}
+                      value={insertAtSequence}
+                      onChange={(e) =>
+                        setInsertAtSequence(Number(e.target.value))
+                      }
+                      className="input input-bordered w-full"
+                    />
+
+                    <p className="mt-1 text-xs text-slate-500">
+                      Tentukan posisi titik patrol dalam urutan jadwal.
+                    </p>
+                  </div>
+
+                  <label className="mt-4 flex cursor-pointer items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={required}
+                      onChange={(e) => setRequired(e.target.checked)}
+                      className="checkbox checkbox-primary"
+                    />
+
+                    <div>
+                      <p className="text-sm font-medium text-slate-700">
+                        Titik patrol wajib dikunjungi
+                      </p>
+
+                      <p className="text-xs text-slate-500">
+                        Satpam diwajibkan mengunjungi titik ini saat patroli.
+                      </p>
+                    </div>
+                  </label>
+                </div>
+
+                <div>
+                  {/* FOOTER */}
+                  <div className="flex shrink-0 justify-end gap-3 border-t border-slate-200 bg-white px-6 py-4">
+                    <button
+                      type="button"
+                      onClick={() => closeModal("add_point")}
+                      className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                    >
+                      Tutup
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={
+                        !patrolPointId || availablePatrolPoints.length === 0
+                      }
+                      className="btn btn-primary"
+                    >
+                      Tambahkan Titik
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </dialog>
       </div>
     </div>
   );

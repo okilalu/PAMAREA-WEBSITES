@@ -21,11 +21,16 @@ import {
 import { useRoles } from "../hooks/role/useRole";
 import UserPagination from "../components/manageUser/UserPagination";
 import { useAuthContext } from "../hooks/auth/useAuthContext";
+import type { CreateUserRequest, UpdateUserRequest } from "../types";
+import type { CreateTeamPayload } from "../types/team/team";
+import { useCreateTeam, useTeams } from "../hooks/team/useTeams";
 
 const UserManage = () => {
   const { user } = useAuthContext();
   const siteId = user?.siteId;
   const { data: listUsers } = useUsers();
+  const { data: teams } = useTeams();
+
   const { mutateAsync: register, isPending: isRegistering } = useCreateUser();
   const { mutateAsync: updateUser, isPending: isUpdatingUser } =
     useUpdateUser();
@@ -33,6 +38,7 @@ const UserManage = () => {
     useDeleteUser();
   const { mutateAsync: deactivated } = useDeactivateUser();
   const { mutateAsync: activated } = useActivateUser();
+  const { mutateAsync: createTeam, isPending: isCreateTeam } = useCreateTeam();
   const {
     data: rolesResponse,
     isPending: isRolesPending,
@@ -46,7 +52,10 @@ const UserManage = () => {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [roleId, setRoleId] = useState("");
-  // const [siteId, setSiteId] = useState("");
+  const [teamId, setTeamId] = useState("");
+  const [teamName, setTeamName] = useState("");
+  const [teamCode, setTeamCode] = useState("");
+  const [teamDescription, setTeamDescription] = useState("");
 
   const [registerError, setRegisterError] = useState("");
   const [registerSuccess, setRegisterSuccess] = useState("");
@@ -61,8 +70,20 @@ const UserManage = () => {
 
   const users = listUsers?.data ?? [];
 
-  console.log("USERS", JSON.stringify(users, null, 2));
+  // console.log("USERS", JSON.stringify(teams, null, 2));
+
+  // const listRegu = useMemo(() => {
+  //   return Array.from(
+  //     new Set(
+  //       teams
+  //         ?.map((item) => item.name)
+  //         .filter((name): name is string => Boolean(name)),
+  //     ),
+  //   );
+  // }, [teams]);
+
   const roles = rolesResponse?.data ?? [];
+  const team = teams ?? [];
 
   const listUnit = useMemo(() => {
     return Array.from(
@@ -84,7 +105,8 @@ const UserManage = () => {
         (item.username ?? "").toLowerCase().includes(keyword) ||
         (item.role?.name ?? "").toLowerCase().includes(keyword) ||
         (item.site?.name ?? "").toLowerCase().includes(keyword) ||
-        (item.phone ?? "").toLowerCase().includes(keyword);
+        (item.phone ?? "").toLowerCase().includes(keyword) ||
+        (item.team?.name ?? "").toLowerCase().includes(keyword);
 
       const matchesRole =
         selectedRole === "" || item.role?.name === selectedRole;
@@ -120,11 +142,39 @@ const UserManage = () => {
       role: "ADMIN",
     },
     {
+      name: "Danru",
+      value: users.filter((user) => user.role?.name === "DANRU_SECURITY")
+        .length,
+      role: "DANRU_SECURITY",
+    },
+    {
+      name: "Chief",
+      value: users.filter((user) => user.role?.name === "CHIEF_SECURITY")
+        .length,
+      role: "CHIEF_SECURITY",
+    },
+    {
       name: "Security",
       value: users.filter((user) => user.role?.name === "SECURITY").length,
       role: "SECURITY",
     },
   ];
+
+  const openModal = (id: string) => {
+    const modal = document.getElementById(id) as HTMLDialogElement | null;
+
+    if (modal && !modal.open) {
+      modal.showModal();
+    }
+  };
+
+  const closeModal = (id: string) => {
+    const modal = document.getElementById(id) as HTMLDialogElement | null;
+
+    if (modal?.open) {
+      modal.close();
+    }
+  };
 
   const openRegisterModal = () => {
     resetRegisterForm();
@@ -147,7 +197,11 @@ const UserManage = () => {
     setEmail(user.email ?? "");
     setPhone(user.phone ?? "");
     setPassword("");
+    setTeamName(user.team?.name ?? "");
+    setTeamCode(user.team?.code ?? "");
+    setTeamDescription(user.team?.description ?? "");
     setRoleId(user.roleId ?? user.role?.id ?? "");
+    setTeamId(user.teamId ?? user.team?.id ?? "");
 
     setRegisterError("");
     setRegisterSuccess("");
@@ -173,7 +227,11 @@ const UserManage = () => {
     setEmail("");
     setPhone("");
     setPassword("");
+    setTeamName("");
+    setTeamCode("");
+    setTeamDescription("");
     setRoleId("");
+    setTeamId("");
 
     setRegisterError("");
   };
@@ -182,6 +240,7 @@ const UserManage = () => {
     event: React.FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault();
+
     setRegisterError("");
     setRegisterSuccess("");
 
@@ -191,6 +250,7 @@ const UserManage = () => {
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedPhone = phone.trim();
 
+    // Validasi field wajib
     if (
       !normalizedEmployeeNumber ||
       !normalizedFullName ||
@@ -203,27 +263,26 @@ const UserManage = () => {
       setRegisterError("Lengkapi semua field yang wajib diisi.");
       return;
     }
-    if (!/^\d{3}$/.test(normalizedEmployeeNumber)) {
-      setRegisterError("Satpam ID harus terdiri dari 3 digit angka.");
-      return;
-    }
 
+    // Validasi email
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
       setRegisterError("Format email tidak valid.");
       return;
     }
 
+    // Validasi nomor telepon
     if (!/^\+?[\d\s()-]{8,20}$/.test(normalizedPhone)) {
       setRegisterError("Format nomor telepon tidak valid.");
       return;
     }
 
+    // Validasi password
     if (password.length < 8) {
       setRegisterError("Password minimal 8 karakter.");
       return;
     }
 
-    // Validasi duplikasi Satpam ID dan email
+    // Validasi duplikasi Satpam ID
     const duplicateID = users.some(
       (user) =>
         user.employeeNumber?.toLowerCase() ===
@@ -235,6 +294,7 @@ const UserManage = () => {
       return;
     }
 
+    // Validasi duplikasi email
     const duplicateEmail = users.some(
       (user) => user.email?.toLowerCase() === normalizedEmail,
     );
@@ -244,15 +304,34 @@ const UserManage = () => {
       return;
     }
 
+    // Cari role yang dipilih
     const selectedRoleData = roles.find((role) => role.id === roleId);
     if (!selectedRoleData) {
       setRegisterError("Role belum ditemukan. Periksa data role dari backend.");
       return;
+    } // Normalisasi nama role
+    const normalizedRoleName = String(selectedRoleData.name)
+      .trim()
+      .toUpperCase(); // Role yang wajib memiliki team
+    const rolesRequiringTeam = ["SECURITY", "DANRU_SECURITY", "CHIEF_SECURITY"];
+    const requiresTeam = rolesRequiringTeam.includes(normalizedRoleName);
+    let selectedTeamId: string | undefined; // Validasi team khusus role keamanan
+    if (requiresTeam) {
+      if (!teamId) {
+        setRegisterError(`Role ${normalizedRoleName} wajib memiliki tim.`);
+        return;
+      }
+      const selectedTeam = teams?.find((team) => team.id === teamId);
+      if (!selectedTeam) {
+        setRegisterError("Tim tidak ditemukan. Silakan pilih tim yang valid.");
+        return;
+      }
+      selectedTeamId = selectedTeam.id;
     }
 
-    const formattedEmployeeNumber = `SEC-${normalizedEmployeeNumber}`;
-    const payload = {
-      employeeNumber: formattedEmployeeNumber,
+    // Susun payload
+    const payload: CreateUserRequest = {
+      employeeNumber: normalizedEmployeeNumber,
       fullName: normalizedFullName,
       username: normalizedUsername,
       email: normalizedEmail,
@@ -260,17 +339,63 @@ const UserManage = () => {
       password,
       roleId: selectedRoleData.id,
       siteId,
+      ...(selectedTeamId ? { teamId: selectedTeamId } : {}),
     };
-    console.log("PAYLOAD", payload);
+
+    console.log("ROLE DIPILIH:", selectedRoleData);
+    console.log("ROLE NAME:", normalizedRoleName);
+    console.log("TEAM ID:", selectedTeamId);
+    console.log("TEAM ID:", selectedTeamId);
+
+    console.log("PAYLOAD REGISTER USER", payload);
+
     try {
       await register(payload);
 
       setRegisterSuccess("Pengguna berhasil didaftarkan.");
+
       resetRegisterForm();
       closeRegisterModal();
     } catch (error) {
-      alert("Error saat register user");
-      console.log(error);
+      console.error("Gagal memperbarui user:", error);
+
+      if (error && typeof error === "object" && "response" in error) {
+        const response = (
+          error as {
+            response?: {
+              status?: number;
+              data?: {
+                message?: string | string[];
+              };
+            };
+          }
+        ).response;
+
+        if (response?.status === 409) {
+          const message = response.data?.message;
+
+          setRegisterError(
+            Array.isArray(message)
+              ? message.join(", ")
+              : message ||
+                  "Data bertentangan dengan data yang sudah ada. Periksa Satpam ID, username, dan email.",
+          );
+          return;
+        }
+
+        if (response?.status === 400) {
+          const message = response.data?.message;
+
+          setRegisterError(
+            Array.isArray(message)
+              ? message.join(", ")
+              : message || "Data yang dikirim tidak valid.",
+          );
+          return;
+        }
+      }
+
+      setRegisterError("Gagal memperbarui user. Silakan periksa kembali data.");
     }
   };
 
@@ -291,6 +416,10 @@ const UserManage = () => {
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedPhone = phone.trim();
 
+    // const normalizedTeamName = teamName.trim();
+    // const normalizedTeamCode = teamCode.trim().toUpperCase();
+    // const normalizedTeamDescription = teamDescription.trim();
+
     if (
       !normalizedEmployeeNumber ||
       !normalizedFullName ||
@@ -303,8 +432,8 @@ const UserManage = () => {
       return;
     }
 
-    if (!/^SEC-\d{3}$/.test(normalizedEmployeeNumber)) {
-      setRegisterError("Format Satpam ID harus seperti SEC-001.");
+    if (!normalizedEmployeeNumber) {
+      setRegisterError("Satpam ID harus diisi.");
       return;
     }
 
@@ -342,20 +471,34 @@ const UserManage = () => {
     }
 
     const selectedRoleData = roles.find((role) => role.id === roleId);
+    const selectedTeamId = team.find((team) => team.id === teamId);
 
     if (!selectedRoleData) {
       setRegisterError("Silakan pilih role yang valid.");
       return;
     }
 
-    const payload = {
+    if (!selectedTeamId) {
+      setRegisterError("Silakan pilih team yang valid.");
+      return;
+    }
+
+    const payload: UpdateUserRequest = {
       employeeNumber: normalizedEmployeeNumber,
       fullName: normalizedFullName,
       username: normalizedUsername,
       email: normalizedEmail,
       phone: normalizedPhone,
       roleId: selectedRoleData.id,
+      teamId: selectedTeamId?.id,
       siteId,
+      // team: {
+      //   name: normalizedTeamName,
+      //   code: normalizedTeamCode,
+      //   ...(normalizedTeamDescription && {
+      //     description: normalizedTeamDescription,
+      //   }),
+      // },
     };
 
     try {
@@ -373,6 +516,43 @@ const UserManage = () => {
       closeRegisterModal();
     } catch (error) {
       console.error("Gagal memperbarui user:", error);
+
+      if (error && typeof error === "object" && "response" in error) {
+        const response = (
+          error as {
+            response?: {
+              status?: number;
+              data?: {
+                message?: string | string[];
+              };
+            };
+          }
+        ).response;
+
+        if (response?.status === 409) {
+          const message = response.data?.message;
+
+          setRegisterError(
+            Array.isArray(message)
+              ? message.join(", ")
+              : message ||
+                  "Data bertentangan dengan data yang sudah ada. Periksa Satpam ID, username, dan email.",
+          );
+          return;
+        }
+
+        if (response?.status === 400) {
+          const message = response.data?.message;
+
+          setRegisterError(
+            Array.isArray(message)
+              ? message.join(", ")
+              : message || "Data yang dikirim tidak valid.",
+          );
+          return;
+        }
+      }
+
       setRegisterError("Gagal memperbarui user. Silakan periksa kembali data.");
     }
   };
@@ -431,6 +611,31 @@ const UserManage = () => {
     }
   };
 
+  const handleCreateTeam = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!siteId) {
+      console.log("Site ID harus diisi");
+    }
+
+    const payload: CreateTeamPayload = {
+      siteId: siteId ?? null,
+      name: teamName,
+      code: teamCode,
+      description: teamDescription,
+    };
+
+    console.log("PAYLOAD", JSON.stringify(payload, null, 2));
+
+    try {
+      await createTeam(payload);
+      console.log("Berhasil create team");
+
+      closeModal("add_team");
+    } catch (error) {
+      console.log("Gagal saat create team", error);
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <div className="px-6 flex justify-between breadcrumbs text-sm bg-white border-b border-gray-200 h-14">
@@ -470,286 +675,11 @@ const UserManage = () => {
               otentikasi perangkat terikat patroli NFC/GPS.
             </p>
           </div>
-
-          <div className="flex gap-4 items-center">
-            <div className="bg-white shadow-sm w-[70%] rounded-lg p-3">
-              <div className="flex items-center gap-2">
-                <div className="bg-cyan-100 p-1 rounded-lg">
-                  <People size={17} color="blue" />
-                </div>
-                <div className="ml-2">
-                  <p className="text-gray-600 text-sm">
-                    Total Personel: {filteredUser?.length}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={openRegisterModal}
-              className="bg-[#FED400] shadow-sm w-[70%] rounded-lg p-3 cursor-pointer"
-            >
-              <div className="flex items-center gap-1">
-                <div className="bg-[#FED400] p-1 rounded-lg">
-                  <UserAdd size={17} color="#6F5C00" />
-                </div>
-                <div className="ml-1">
-                  <p className="text-gray-900 text-sm font-semibold">
-                    {isEditMode ? "Edit Data Satpam" : "Register New Satpam"}
-                  </p>
-                </div>
-              </div>
-            </button>
-
-            {/* Form & Modal */}
-            <dialog id="register_satpam_modal" className="modal">
-              <div
-                className="
-            modal-box
-            max-w-none
-            w-[450px]
-            h-screen
-            max-h-screen
-            rounded-none
-            absolute
-            right-0
-            top-0
-            m-0
-            p-0
-          "
-              >
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">
-                      Register New Satpam
-                    </h3>
-
-                    <p className="text-xs text-gray-500 mt-1">
-                      Add a new security personnel to the system
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      // setRegisterForm(initialRegisterForm);
-                      setRegisterError("");
-                      setIsEditMode(false);
-                      closeRegisterModal();
-                    }}
-                    className="btn btn-sm btn-circle btn-ghost"
-                  >
-                    <CloseCircle size={22} color="gray" />
-                  </button>
-                </div>
-
-                {/* Form */}
-                <form
-                  className="p-6 overflow-y-auto h-[calc(100vh-90px)]"
-                  // onSubmit={handleRegisterUser}
-                  onSubmit={isEditMode ? handleUpdateUser : handleRegisterUser}
-                >
-                  <div className="space-y-4">
-                    {/* Satpam ID */}
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">
-                        Satpam ID
-                      </label>
-
-                      <input
-                        type="text"
-                        name="Nip"
-                        placeholder="Enter satpam ID"
-                        className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        value={employeeNumber}
-                        onChange={(e) => setEmployeeNumber(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    {/* Full Name */}
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">
-                        Full Name
-                      </label>
-
-                      <input
-                        type="text"
-                        name="nama"
-                        placeholder="Enter full name"
-                        className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    {/* Username */}
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">
-                        Username
-                      </label>
-
-                      <input
-                        type="text"
-                        name="username"
-                        placeholder="Enter username"
-                        className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    {/* Phone */}
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">
-                        Phone Number
-                      </label>
-
-                      <input
-                        type="tel"
-                        name="phone"
-                        placeholder="Enter phone number"
-                        className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    {/* Email */}
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">
-                        Email
-                      </label>
-
-                      <input
-                        type="email"
-                        name="email"
-                        placeholder="Enter email address"
-                        className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    {/* Password */}
-                    {!isEditMode && (
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">
-                          Password
-                        </label>
-
-                        <input
-                          type="password"
-                          name="password"
-                          placeholder="Enter password"
-                          className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          minLength={8}
-                          required={!isEditMode}
-                        />
-                      </div>
-                    )}
-
-                    {/* Role */}
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">
-                        Role
-                      </label>
-
-                      <select
-                        className="select select-bordered w-full mt-1 bg-white border-gray-300 text-sm"
-                        name="role"
-                        value={roleId}
-                        onChange={(e) => setRoleId(e.target.value)}
-                        disabled={
-                          isRolesPending || isRolesError || roles.length === 0
-                        }
-                        required
-                      >
-                        <option value="" disabled>
-                          {isRolesPending
-                            ? "Memuat Role..."
-                            : isRolesError
-                              ? "Gagal memuat role"
-                              : roles.length === 0
-                                ? "Role tidak tersedia"
-                                : "Select role"}
-                        </option>
-                        {roles.map((role) => (
-                          <option key={role.id} value={role.id}>
-                            {role.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Action */}
-                    {registerError && (
-                      <div
-                        role="alert"
-                        className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"
-                      >
-                        <span>{registerError}</span>
-                      </div>
-                    )}
-                    <div className="pt-4 flex gap-3">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          resetRegisterForm();
-                          setSelectedUserId("");
-                          setIsEditMode(false);
-                          closeRegisterModal();
-                        }}
-                        disabled={isRegistering || isUpdatingUser}
-                        className="btn flex-1 bg-gray-100 border-none text-gray-700"
-                      >
-                        Cancel
-                      </button>
-
-                      <button
-                        type="submit"
-                        disabled={isRegistering || isUpdatingUser}
-                        className="btn flex-1 bg-[#FED400] border-none text-gray-900 hover:bg-[#e8c200]"
-                      >
-                        {isRegistering || isUpdatingUser
-                          ? "Menyimpan..."
-                          : isEditMode
-                            ? "Simpan Perubahan"
-                            : "Register Satpam"}
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-
-              {/* Click outside to close */}
-              <form method="dialog" className="modal-backdrop">
-                <button
-                  onClick={() => {
-                    setRegisterError("");
-                    setIsEditMode(false);
-                    closeRegisterModal();
-                  }}
-                >
-                  close
-                </button>
-              </form>
-            </dialog>
-            {/* Form & Modal */}
-          </div>
         </div>
 
         {/* Input */}
         <div className="flex items-center gap-2 bg-white shadow-sm px-4 py-2 mt-2 rounded-lg">
-          <label className="input bg-gray-100 w-[40%]">
+          <label className="input bg-gray-100 w-[27%]">
             <SearchNormal size={20} color="gray" />
             <input
               type="search"
@@ -761,22 +691,22 @@ const UserManage = () => {
             />
           </label>
 
-          <div className="bg-gray-100 rounded-lg px-4 py-1 flex gap-3">
+          <div className="bg-gray-100 rounded-lg py-1 flex gap-3">
             {filterRole.map((item) => (
               <button
                 key={item.name}
                 type="button"
                 onClick={() => setSelectedRole(item.role)}
-                className={`flex items-center justify-center gap-1 px-1 py-2 rounded-lg transition-color ${selectedRole === item.role ? "bg-[#003B73] shadow-sm" : "hover:bg-white/50"}`}
+                className={`flex items-center justify-center gap-1 px-1 py-3 rounded-lg transition-color ${selectedRole === item.role ? "bg-[#003B73] shadow-sm" : "hover:bg-white/50"}`}
               >
                 <p
                   className={`text-xs ${selectedRole === item.role ? "text-white" : "text-gray-700"}`}
                 >
                   {item.name}
                 </p>
-                {/* <div className="bg-blue-100 rounded-full px-2 py-1">
+                <div className="bg-blue-100 rounded-full px-1">
                   <p className="text-gray-800 text-xs">{item.value}</p>
-                </div> */}
+                </div>
               </button>
             ))}
           </div>
@@ -826,6 +756,41 @@ const UserManage = () => {
                 </li>
               ))}
             </ul>
+          </div>
+
+          <div>
+            <button
+              onClick={() => openModal("add_team")}
+              className="bg-white shadow-sm rounded-lg px-4 py-2 hover:bg-gray-200 cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <div className="bg-cyan-100 p-1 rounded-lg">
+                  <People size={17} color="blue" />
+                </div>
+                <div className="ml-2">
+                  <p className="text-gray-600 text-sm">Tambah Regu</p>
+                </div>
+              </div>
+            </button>
+          </div>
+
+          <div>
+            <button
+              type="button"
+              onClick={openRegisterModal}
+              className="bg-[#FED400] shadow-sm rounded-lg px-4 py-2 border border-yellow-100 hover:bg-yellow-400 cursor-pointer"
+            >
+              <div className="flex items-center gap-1">
+                <div className="bg-[#FED400] p-1 rounded-lg">
+                  <UserAdd size={17} color="#6F5C00" />
+                </div>
+                <div className="ml-1">
+                  <p className="text-gray-900 text-sm font-semibold">
+                    {isEditMode ? "Edit Data Satpam" : "Register New Satpam"}
+                  </p>
+                </div>
+              </div>
+            </button>
           </div>
         </div>
         {/* Input */}
@@ -931,7 +896,7 @@ const UserManage = () => {
                                 </div>
 
                                 <div className="text-xs text-gray-500">
-                                  Main Gate
+                                  {item.team?.name ?? "Tidak ada regu"}
                                 </div>
                               </div>
                             ) : (
@@ -1157,6 +1122,431 @@ const UserManage = () => {
           </div>
         </div>
         {/* Table */}
+
+        {/* Form & Modal */}
+        <dialog id="register_satpam_modal" className="modal">
+          <div
+            className="
+            modal-box
+            max-w-none
+            w-[450px]
+            h-screen
+            max-h-screen
+            rounded-none
+            absolute
+            right-0
+            top-0
+            m-0
+            p-0
+          "
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">
+                  {isEditMode ? "Update Satpam" : "Register New Satpam"}
+                </h3>
+
+                <p className="text-xs text-gray-500 mt-1">
+                  {isEditMode
+                    ? "Edit a satpam data "
+                    : "Add a new security personnel to the system"}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  // setRegisterForm(initialRegisterForm);
+                  setRegisterError("");
+                  setIsEditMode(false);
+                  closeRegisterModal();
+                }}
+                className="btn btn-sm btn-circle btn-ghost"
+              >
+                <CloseCircle size={22} color="gray" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form
+              className="p-6 overflow-y-auto h-[calc(100vh-90px)]"
+              // onSubmit={handleRegisterUser}
+              onSubmit={isEditMode ? handleUpdateUser : handleRegisterUser}
+            >
+              <div className="space-y-4">
+                {/* Satpam ID */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Satpam ID
+                  </label>
+
+                  <input
+                    type="text"
+                    name="Nip"
+                    placeholder="Enter satpam ID"
+                    className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    value={employeeNumber}
+                    onChange={(e) => setEmployeeNumber(e.target.value)}
+                    required
+                  />
+                </div>
+                {/* Full Name */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Full Name
+                  </label>
+
+                  <input
+                    type="text"
+                    name="nama"
+                    placeholder="Enter full name"
+                    className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                  />
+                </div>
+                {/* Username */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Username
+                  </label>
+
+                  <input
+                    type="text"
+                    name="username"
+                    placeholder="Enter username"
+                    className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                  />
+                </div>
+                {/* Phone */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Phone Number
+                  </label>
+
+                  <input
+                    type="tel"
+                    name="phone"
+                    placeholder="Enter phone number"
+                    className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                  />
+                </div>
+                {/* Email */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Email
+                  </label>
+
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Enter email address"
+                    className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                {/* Password */}
+                {!isEditMode && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      Password
+                    </label>
+
+                    <input
+                      type="password"
+                      name="password"
+                      placeholder="Enter password"
+                      className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      minLength={8}
+                      required={!isEditMode}
+                    />
+                  </div>
+                )}
+                {/* Role */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Role
+                  </label>
+
+                  <select
+                    className="select select-bordered w-full mt-1 bg-white border-gray-300 text-sm"
+                    name="role"
+                    value={roleId}
+                    onChange={(e) => setRoleId(e.target.value)}
+                    disabled={
+                      isRolesPending || isRolesError || roles.length === 0
+                    }
+                    required
+                  >
+                    <option value="" disabled>
+                      {isRolesPending
+                        ? "Memuat Role..."
+                        : isRolesError
+                          ? "Gagal memuat role"
+                          : roles.length === 0
+                            ? "Role tidak tersedia"
+                            : "Select role"}
+                    </option>
+                    {roles.map((role) => (
+                      <option key={role.id} value={role.id}>
+                        {role.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Pilih Team saat Edit User */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Regu / Team
+                  </label>
+
+                  <select
+                    className="select select-bordered w-full mt-1 bg-white border-gray-300 text-sm"
+                    name="teamId"
+                    value={teamId}
+                    onChange={(e) => setTeamId(e.target.value)}
+                    required
+                  >
+                    <option value="" disabled>
+                      Pilih Regu / Team
+                    </option>
+
+                    {team.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name} - {item.code}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Team Fields - hanya saat membuat user */}
+                {/* {isEditMode && (
+                  <div className="border-t border-gray-200 pt-5 mt-5">
+                    <div className="mb-4">
+                      <h3 className="text-sm font-semibold text-gray-800">
+                        Informasi Tim
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Buat tim baru untuk satpam yang didaftarkan.
+                      </p>
+                    </div>
+                    <div className="mb-4">
+                      <label className="text-sm font-medium text-gray-700">
+                        Nama Tim
+                      </label>
+                      <input
+                        type="text"
+                        name="teamName"
+                        placeholder="Contoh: Regu Alpha"
+                        className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        value={teamName}
+                        onChange={(e) => setTeamName(e.target.value)}
+                        required={!isEditMode}
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label className="text-sm font-medium text-gray-700">
+                        Kode Tim
+                      </label>
+                      <input
+                        type="text"
+                        name="teamCode"
+                        placeholder="Contoh: REGU-ALPHA"
+                        className="input input-bordered w-full mt-1 bg-white border-gray-300 text-sm uppercase focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        value={teamCode}
+                        onChange={(e) =>
+                          setTeamCode(e.target.value.toUpperCase())
+                        }
+                        required={!isEditMode}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">
+                        Deskripsi Tim
+                        <span className="font-normal text-gray-400 ml-1">
+                          (Opsional)
+                        </span>
+                      </label>
+                      <textarea
+                        name="teamDescription"
+                        placeholder="Masukkan deskripsi tim..."
+                        rows={3}
+                        maxLength={255}
+                        className="textarea textarea-bordered w-full mt-1 bg-white border-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        value={teamDescription}
+                        onChange={(e) => setTeamDescription(e.target.value)}
+                        required={!isEditMode}
+                      />
+                    </div>
+                  </div>
+                )} */}
+
+                {/* Action */}
+                {registerError && (
+                  <div
+                    role="alert"
+                    className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+                  >
+                    <span>{registerError}</span>
+                  </div>
+                )}
+                <div className="pt-4 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resetRegisterForm();
+                      setSelectedUserId("");
+                      setIsEditMode(false);
+                      closeRegisterModal();
+                    }}
+                    disabled={isRegistering || isUpdatingUser}
+                    className="btn flex-1 bg-gray-100 border-none text-gray-700"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={isRegistering || isUpdatingUser}
+                    className="btn flex-1 bg-[#FED400] border-none text-gray-900 hover:bg-[#e8c200]"
+                  >
+                    {isRegistering || isUpdatingUser
+                      ? "Menyimpan..."
+                      : isEditMode
+                        ? "Simpan Perubahan"
+                        : "Register Satpam"}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          {/* Click outside to close */}
+          <form method="dialog" className="modal-backdrop">
+            <button
+              onClick={() => {
+                setRegisterError("");
+                setIsEditMode(false);
+                closeRegisterModal();
+              }}
+            >
+              close
+            </button>
+          </form>
+        </dialog>
+        {/* Form & Modal */}
+
+        {/* Modal Create Team */}
+        <dialog id="add_team" className="modal">
+          <div className="modal-box flex max-h-[92vh] w-11/12 max-w-2xl flex-col overflow-hidden rounded-2xl bg-white p-0 shadow-2xl">
+            <div className="flex shrink-0 items-center justify-between border-b border-gray-100 bg-white px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
+                  <People size={21} color="#003B73" />
+                </div>
+
+                <div>
+                  <h2 className="text-base font-bold text-gray-800">
+                    Buat Regu / Team Patroli
+                  </h2>
+                  <p className="mt-0.5 text-xs text-gray-500">
+                    Konfigurasikan dengan security.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  closeModal("add_team");
+                }}
+                aria-label="Tutup modal"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
+              >
+                <CloseCircle size={21} color="gray" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateTeam} className="px-5 py-4">
+              <div>
+                <label
+                  htmlFor=""
+                  className="block text-sm text-gray-500 font-semibold"
+                >
+                  Nama Regu
+                </label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Regu A"
+                  className="border border-gray-200 rounded-lg w-full px-4 py-3 mt-1"
+                  value={teamName}
+                  onChange={(e) => setTeamName(e.target.value)}
+                />
+              </div>
+              <div className="mt-5">
+                <label
+                  htmlFor=""
+                  className="block text-sm text-gray-500 font-semibold"
+                >
+                  Code Regu
+                </label>
+                <input
+                  type="text"
+                  placeholder="Contoh: REGU-ALPHA"
+                  className="border border-gray-200 rounded-lg w-full px-4 py-3 mt-1"
+                  value={teamCode}
+                  onChange={(e) => setTeamCode(e.target.value)}
+                />
+              </div>
+              <div className="mt-5">
+                <label
+                  htmlFor=""
+                  className="block text-sm text-gray-500 font-semibold"
+                >
+                  Description Regu
+                </label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Opsional"
+                  className="border border-gray-200 rounded-lg w-full px-4 py-3 mt-1"
+                  value={teamDescription}
+                  onChange={(e) => setTeamDescription(e.target.value)}
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 mt-5">
+                <button
+                  onClick={() => closeModal("add_team")}
+                  className="border border-gray-400 rounded-lg px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                >
+                  <p className="text-sm text-gray-500 font-semibold">Batal</p>
+                </button>
+                <button
+                  disabled={isCreateTeam}
+                  className="bg-[#FED400] rounded-lg px-4 py-2 hover:bg-yellow-300 cursor-pointer"
+                >
+                  <p className="text-sm font-semibold">
+                    {isCreateTeam ? "Menyimpan..." : "Simpan"}
+                  </p>
+                </button>
+              </div>
+            </form>
+          </div>
+        </dialog>
+        {/* Modal Create Team */}
       </div>
     </div>
   );
