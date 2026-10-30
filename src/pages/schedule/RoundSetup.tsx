@@ -170,7 +170,7 @@ const RoundSetup = ({ roundId, onBack }: RoundSetupProps) => {
           onClick={handleBack}
           className="mb-5 flex items-center gap-2 text-sm font-medium text-[#00529C]"
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={18} color="blue" />
           Kembali ke Patrol Rounds
         </button>
 
@@ -242,7 +242,7 @@ const RoundSetup = ({ roundId, onBack }: RoundSetupProps) => {
             onClick={handleBack}
             className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
           >
-            <ArrowLeft size={17} />
+            <ArrowLeft size={17} color="gray" />
             Kembali
           </button>
         </div>
@@ -368,7 +368,7 @@ const RoundSetup = ({ roundId, onBack }: RoundSetupProps) => {
                 }
                 className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <Refresh size={15} />
+                <Refresh size={15} color="gray" />
                 Reset
               </button>
             </div>
@@ -413,7 +413,7 @@ const RoundSetup = ({ roundId, onBack }: RoundSetupProps) => {
                     <td className="px-5 py-4">
                       <div className="flex items-start gap-3">
                         <div className="mt-0.5 rounded-lg bg-gray-100 p-2 text-gray-600">
-                          <Map1 size={17} />
+                          <Map1 size={17} color="gray" />
                         </div>
 
                         <div>
@@ -462,7 +462,7 @@ const RoundSetup = ({ roundId, onBack }: RoundSetupProps) => {
                           onClick={() => handleMoveCheckpoint(index, "up")}
                           className="rounded-md border border-gray-200 p-2 text-gray-600 transition hover:border-[#00529C] hover:text-[#00529C] disabled:cursor-not-allowed disabled:opacity-30"
                         >
-                          <ArrowUp size={16} />
+                          <ArrowUp size={16} color="blue" />
                         </button>
 
                         <button
@@ -477,7 +477,7 @@ const RoundSetup = ({ roundId, onBack }: RoundSetupProps) => {
                           onClick={() => handleMoveCheckpoint(index, "down")}
                           className="rounded-md border border-gray-200 p-2 text-gray-600 transition hover:border-[#00529C] hover:text-[#00529C] disabled:cursor-not-allowed disabled:opacity-30"
                         >
-                          <ArrowDown size={16} />
+                          <ArrowDown size={16} color="blue" />
                         </button>
                       </div>
                     </td>
@@ -518,12 +518,12 @@ const RoundSetup = ({ roundId, onBack }: RoundSetupProps) => {
             >
               {reorderMutation.isPending ? (
                 <>
-                  <LocationAdd size={17} />
+                  <LocationAdd size={17} color="gray" />
                   Menyimpan...
                 </>
               ) : (
                 <>
-                  <Save2 size={17} />
+                  <Save2 size={17} color="white" />
                   Simpan Urutan
                 </>
               )}

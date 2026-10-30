@@ -1,7 +1,6 @@
 import {
   // ArrowRight2,
   Calendar,
-  DocumentDownload,
   Location,
   // Notification,
   Sun,
@@ -13,6 +12,7 @@ import MapsCheckpoint from "../components/mapsCheckpoint/MapsCheckpoint";
 import { useSecurityUsers } from "../hooks/users/useUsers";
 import { usePatrolPoints } from "../hooks/patrol-point/usePatrolPoints";
 import { usePatrolSchedules } from "../hooks/schedule/usePatrolSchedules";
+import Breadcrumb from "../components/breadcrumbs/Breadcrumb";
 
 const Dashboard = () => {
   const { data: security } = useSecurityUsers();
@@ -153,28 +153,9 @@ const Dashboard = () => {
   // const sliceData = cardHazard.slice(0, 3);
   return (
     <div className="min-h-screen ">
-      <div className="px-6 flex justify-between breadcrumbs text-sm bg-white border-b border-gray-200 h-14">
-        <ul className="mt-2">
-          <li>
-            <a className="text-gray-700 font-semibold">Dashboard</a>
-          </li>
-          <li>
-            <a className="text-gray-700 font-semibold">Command Center</a>
-          </li>
-          <li className="text-gray-700 font-semibold">Add Document</li>
-        </ul>
-        <div className="flex gap-2">
-          <div className="bg-black rounded-full px-2 py-1">
-            <p className="text-white text-lg font-bold mt-0.5">LO</p>
-          </div>
-          <div>
-            <h2 className="text-gray-800 text-sm font-semibold">Lalu Oki</h2>
-            <p className="text-gray-600 text-xs tracking-wider">
-              Chief Patrol Supervisor
-            </p>
-          </div>
-        </div>
-      </div>
+      <Breadcrumb
+        items={[{ label: "Dashboard", path: "/" }, { label: "Command Center" }]}
+      />
       <div className="px-6 pb-6">
         {/* Title */}
         <div className="mt-3 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
@@ -225,12 +206,6 @@ const Dashboard = () => {
                   )}
                 </div>
               </div>
-
-              {/* Export */}
-              <button className="flex items-center gap-2 rounded-md bg-blue-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-800">
-                <DocumentDownload size={17} color="white" />
-                Export Log
-              </button>
             </div>
           </div>
         </div>

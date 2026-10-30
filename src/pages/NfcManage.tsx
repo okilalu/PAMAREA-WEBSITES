@@ -142,21 +142,21 @@ const NfcManage = () => {
   // =========================================================
   // MODAL REGISTRASI NFC
   // =========================================================
-  const openRegisterModal = () => {
-    const modal = document.getElementById(
-      "register_nfc",
-    ) as HTMLDialogElement | null;
+  // const openRegisterModal = () => {
+  //   const modal = document.getElementById(
+  //     "register_nfc",
+  //   ) as HTMLDialogElement | null;
 
-    modal?.showModal();
-  };
+  //   modal?.showModal();
+  // };
 
-  const closeRegisterModal = () => {
-    const modal = document.getElementById(
-      "register_nfc",
-    ) as HTMLDialogElement | null;
+  // const closeRegisterModal = () => {
+  //   const modal = document.getElementById(
+  //     "register_nfc",
+  //   ) as HTMLDialogElement | null;
 
-    modal?.close();
-  };
+  //   modal?.close();
+  // };
 
   // =========================================================
   // MODAL AKTIVASI NFC
@@ -265,7 +265,7 @@ const NfcManage = () => {
             </p>
           </div>
 
-          <div className="flex items-center justify-end">
+          {/* <div className="flex items-center justify-end">
             <button
               type="button"
               onClick={openRegisterModal}
@@ -283,11 +283,11 @@ const NfcManage = () => {
                 </div>
               </div>
             </button>
-          </div>
+          </div> */}
         </div>
 
         {/* REGISTER NFC MODAL */}
-        <dialog id="register_nfc" className="modal">
+        {/* <dialog id="register_nfc" className="modal">
           <div className="modal-box max-w-none w-112.5 h-screen max-h-screen rounded-none absolute right-0 top-0 m-0 p-0 flex flex-col bg-white">
             <div className="flex items-start justify-between px-6 py-6 border-b border-gray-100">
               <div className="flex items-center gap-4">
@@ -442,9 +442,8 @@ const NfcManage = () => {
               </button>
             </div>
           </div>
-        </dialog>
+        </dialog> */}
 
-        {/* FILTER DAN PENCARIAN */}
         <div className="mt-5 bg-white rounded-lg px-4 py-3">
           <div className="flex items-center">
             <label className="input bg-gray-100 w-full">

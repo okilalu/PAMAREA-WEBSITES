@@ -408,14 +408,14 @@ const ManageSchedule = () => {
                             </button>
 
                             {/* LIHAT PETUGAS */}
-                            <button
+                            {/* <button
                               type="button"
                               title={`Lihat petugas ${schedule.name}`}
                               aria-label={`Lihat petugas ${schedule.name}`}
                               className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
                             >
                               <People size={19} color="currentColor" />
-                            </button>
+                            </button> */}
                           </div>
                         </td>
                       </tr>

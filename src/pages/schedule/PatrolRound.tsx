@@ -25,13 +25,7 @@ const PatrolRound = ({ onSetupRound }: PatrolRoundProps) => {
     refetch,
   } = useGetScheduleAssigments();
 
-  const {
-    data: patrolRounds,
-    // isLoading,
-    // isError,
-    // error,
-    // refetch,
-  } = usePatrolRoundsGroupedByUser();
+  const { data: patrolRounds } = usePatrolRoundsGroupedByUser();
 
   const [search, setSearch] = useState("");
   const [selectedShift, setSelectedShift] = useState("ALL");
@@ -427,9 +421,9 @@ const PatrolRound = ({ onSetupRound }: PatrolRoundProps) => {
                             onClick={() => setSelectedAssignmentId(item.id)}
                             className="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-[#003B73] px-3 text-xs font-semibold text-white transition hover:bg-[#00529C]"
                           >
-                            <Setting2 size={15} />
+                            <Setting2 size={15} color="white" />
                             Atur Rounds
-                            <ArrowRight2 size={14} />
+                            <ArrowRight2 size={14} color="white" />
                           </button>
                         </td>
                       </tr>
@@ -561,9 +555,9 @@ const PatrolRound = ({ onSetupRound }: PatrolRoundProps) => {
                         }}
                         className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#003B73] px-3 text-xs font-semibold text-white transition hover:bg-[#00529C]"
                       >
-                        <Setting2 size={15} />
+                        <Setting2 size={15} color="White" />
                         Atur Checkpoint
-                        <ArrowRight2 size={14} />
+                        <ArrowRight2 size={14} color="White" />
                       </button>
                     </div>
                   ))
